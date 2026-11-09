@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+  <meta name="theme-color" content="#1b1638" />
+  <meta name="description" content="Kusi y los Fragmentos del Sol: videojuego de plataformas 2D hecho con Phaser 3." />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <title>Kusi y los Fragmentos del Sol</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #1b1638; overflow: hidden; }
+    body { touch-action: none; -webkit-user-select: none; user-select: none; }
+    #juego { width: 100vw; height: 100vh; height: 100dvh; display: flex; align-items: center; justify-content: center; }
+    #juego canvas { image-rendering: pixelated; }
+    /* Aviso para girar el dispositivo en móviles en vertical */
+    #rotar { display: none; position: fixed; inset: 0; z-index: 10; background: #1b1638; color: #f3e6cf;
+      font: bold 20px/1.4 "Trebuchet MS", Verdana, sans-serif; text-align: center; align-items: center; justify-content: center; padding: 24px; }
+    @media (orientation: portrait) and (pointer: coarse) { #rotar { display: flex; } }
+  </style>
+</head>
+<body>
+  <main id="juego" aria-label="Videojuego Kusi y los Fragmentos del Sol"></main>
+  <div id="rotar" role="alert">Gira tu dispositivo en horizontal para jugar.</div>
+  <noscript>Este juego necesita JavaScript activado.</noscript>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

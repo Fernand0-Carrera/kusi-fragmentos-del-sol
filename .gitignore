@@ -1,0 +1,7 @@
+node_modules/
+dist/
+tools/_tmp_audio/
+resultados_pruebas.json
+capturas_prueba_*.png
+.DS_Store
+*.log

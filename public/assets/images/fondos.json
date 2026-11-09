@@ -1,0 +1,38 @@
+{
+ "fondo_valle_0": {
+  "y": 0,
+  "alto": 540
+ },
+ "fondo_valle_1": {
+  "y": 189,
+  "alto": 351
+ },
+ "fondo_valle_2": {
+  "y": 355,
+  "alto": 185
+ },
+ "fondo_hielo_0": {
+  "y": 0,
+  "alto": 540
+ },
+ "fondo_hielo_1": {
+  "y": 0,
+  "alto": 110
+ },
+ "fondo_hielo_2": {
+  "y": 380,
+  "alto": 160
+ },
+ "fondo_crater_0": {
+  "y": 0,
+  "alto": 540
+ },
+ "fondo_crater_1": {
+  "y": 183,
+  "alto": 357
+ },
+ "fondo_crater_2": {
+  "y": 398,
+  "alto": 142
+ }
+}

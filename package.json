@@ -1,0 +1,19 @@
+{
+  "name": "kusi-fragmentos-del-sol",
+  "version": "1.0.0",
+  "description": "Videojuego de plataformas 2D con Phaser 3: Kusi recorre los Andes para recuperar los fragmentos del sol.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "assets": "python3 tools/generar_imagenes.py && python3 tools/generar_audio.py"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "vite": "^7.0.0"
+  }
+}
