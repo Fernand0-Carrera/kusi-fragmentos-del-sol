@@ -24,7 +24,7 @@ export default class HelpScene extends Phaser.Scene {
       'Espacio, W, Z o Flecha arriba: saltar',
       'Mantén saltar para llegar más alto',
       'P o Esc: pausa',
-      'M: silenciar   F: ver FPS'
+      'M: silenciar'
     ]);
     columna(560, 'Pantalla táctil', [
       'Botones abajo a la izquierda:',

@@ -43,10 +43,8 @@ export default class UIScene extends Phaser.Scene {
     this.minimapa = new Minimap(this, ANCHO / 2 - 40, 10, this.datosNivel.filas, 1.6);
     this.barraJefe = new BossBar(this, ANCHO / 2, 88);
 
-    // --- Mensajes centrales y FPS
+    // --- Mensajes centrales
     this.mensaje = this.add.bitmapText(ANCHO / 2, 150, FUENTE, '', 24).setOrigin(0.5).setAlpha(0).setTint(COLOR.oroClaro);
-    this.fps = this.add.bitmapText(14, ALTO - 20, FUENTE, '', 24).setOrigin(0, 0.5).setVisible(new URLSearchParams(location.search).has('fps'));
-    this.input.keyboard.on('keydown-F', () => this.fps.setVisible(!this.fps.visible));
 
     // --- Controles táctiles: visibles en dispositivos táctiles (o con ?tactil en la URL)
     const tactil = this.sys.game.device.input.touch || new URLSearchParams(location.search).has('tactil');
@@ -116,6 +114,5 @@ export default class UIScene extends Phaser.Scene {
     const juego = this.juego;
     if (!juego?.jugador) return;
     this.minimapa.actualizar(juego.jugador, juego.jefe, TILE);
-    if (this.fps.visible) this.fps.setText(`FPS ${Math.round(this.game.loop.actualFps)}`);
   }
 }
