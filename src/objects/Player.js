@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import StateMachine from '../managers/StateMachine.js';
-import { FISICA, JUGADOR, CAPAS } from '../config/constants.js';
+import { FISICA, JUGADOR, CAPAS, DASH, SENSACION } from '../config/constants.js';
 import { audio } from '../managers/AudioManager.js';
 import { SFX } from '../audio/audioKeys.js';
 
@@ -17,6 +17,8 @@ const acercar = (actual, objetivo, paso) =>
  *  - tiempo coyote: se puede saltar unos milisegundos después de dejar un borde
  *  - buffer de salto: el salto pulsado justo antes de aterrizar no se pierde
  *  - salto variable: soltar el botón antes acorta el salto
+ *  - dash: impulso horizontal corto, sin gravedad, uno por salto
+ *  - polvo al aterrizar fuerte y al correr, y estela de siluetas en el dash
  */
 export default class Player extends Phaser.Physics.Arcade.Sprite {
   constructor(scene, x, y, entrada, { hielo = false } = {}) {
@@ -36,6 +38,15 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     this.ultimoSalto = -10;     // segundo en que se pulsó saltar
     this.saltoCortado = false;
     this.invulnerableHasta = 0;
+
+    this.dashListo = true;       // se recarga al tocar suelo: un dash por salto
+    this.finEnfriamientoDash = 0;
+    this.direccionDash = 1;
+    this.tiempoEstela = 0;
+    this.tiempoPolvo = 0;
+    this.enSueloAnterior = false;
+    this.vyAnterior = 0;         // velocidad vertical del fotograma anterior (para el aterrizaje)
+    this.colorPolvo = hielo ? 0xc9e8ff : 0xe8d9bd;
 
     this.fsm = new StateMachine(this, {
       quieto: {
@@ -62,6 +73,34 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         entrar() { this.play('kusi-caer', true); },
         actualizar() {
           if (this.enSuelo) this.fsm.cambiar('quieto');
+        }
+      },
+      dash: {
+        entrar() {
+          this.play('kusi-correr', true);
+          this.anims.timeScale = 2;
+          this.body.allowGravity = false;
+          this.setVelocity(this.direccionDash * DASH.velocidad, 0);
+          this.tiempoEstela = 0;
+        },
+        actualizar(dt) {
+          this.setVelocity(this.direccionDash * DASH.velocidad, 0);
+          this.tiempoEstela -= dt;
+          if (this.tiempoEstela <= 0) {
+            this.scene.efectos?.estela(this, this.colorPolvo);
+            this.tiempoEstela = SENSACION.intervaloEstela;
+          }
+          const choco = this.direccionDash > 0 ? this.body.blocked.right : this.body.blocked.left;
+          if (choco || this.fsm.tiempoEnEstado >= DASH.duracion) this.fsm.cambiar(this.enSuelo ? 'quieto' : 'cayendo');
+        },
+        salir() {
+          this.anims.timeScale = 1;
+          this.body.allowGravity = true;
+          // Al terminar se conserva la velocidad de carrera para salir con fluidez
+          // (un empuje por daño es menor y no se toca)
+          if (Math.abs(this.body.velocity.x) > FISICA.velocidadCarrera * 1.5) {
+            this.setVelocityX(Math.sign(this.body.velocity.x) * FISICA.velocidadCarrera);
+          }
         }
       },
       herido: {
@@ -105,10 +144,24 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.fsm.actualizar(dt);
       return;
     }
-    if (this.enSuelo) this.ultimoSuelo = t;
+    const enSuelo = this.enSuelo;
+    if (enSuelo) {
+      this.ultimoSuelo = t;
+      this.dashListo = true;
+    }
+    this.revisarAterrizaje(enSuelo);
+
+    const controla = !this.fsm.es('herido');
+    if (controla && this.entrada.saltoPresionado) this.ultimoSalto = t;
+
+    // --- Durante el dash el impulso manda: no hay aceleración ni salto
+    if (this.fsm.es('dash')) {
+      this.fsm.actualizar(dt);
+      this.recordarFotograma(enSuelo);
+      return;
+    }
 
     // --- Movimiento horizontal con aceleración
-    const controla = !this.fsm.es('herido');
     let direccion = 0;
     if (controla) {
       if (this.entrada.izquierda()) direccion -= 1;
@@ -121,7 +174,6 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     if (direccion !== 0) this.setFlipX(direccion < 0);
 
     // --- Salto con buffer y tiempo coyote
-    if (controla && this.entrada.saltoPresionado) this.ultimoSalto = t;
     const pidioSalto = t - this.ultimoSalto <= FISICA.bufferSalto;
     const puedeSaltar = t - this.ultimoSuelo <= FISICA.tiempoCoyote;
     if (pidioSalto && puedeSaltar && this.body.velocity.y >= -20) this.saltar();
@@ -132,7 +184,49 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
       this.saltoCortado = true;
     }
 
+    // --- Dash: Shift / X o el botón táctil
+    if (controla && this.entrada.dashPresionado && this.puedeDash(t)) this.iniciarDash(direccion, t);
+
+    if (this.fsm.es('corriendo') && enSuelo) this.levantarPolvo(dt);
+
     this.fsm.actualizar(dt);
+    this.recordarFotograma(enSuelo);
+  }
+
+  puedeDash(t) {
+    return this.dashListo && t >= this.finEnfriamientoDash;
+  }
+
+  /** Lanza el dash hacia donde se pulsa o, si no se pulsa nada, hacia donde mira Kusi. */
+  iniciarDash(direccion, t) {
+    this.direccionDash = direccion !== 0 ? direccion : (this.flipX ? -1 : 1);
+    this.setFlipX(this.direccionDash < 0);
+    this.dashListo = false;
+    this.finEnfriamientoDash = t + DASH.duracion + DASH.enfriamiento;
+    if (this.enSuelo) this.scene.efectos?.polvo(this.x - this.direccionDash * 10, this.body.bottom, 5, this.colorPolvo);
+    this.fsm.cambiar('dash');
+    audio.efecto(SFX.DASH);
+  }
+
+  /** Nubecita de polvo en los pies cada cierto tiempo mientras corre. */
+  levantarPolvo(dt) {
+    this.tiempoPolvo -= dt;
+    if (this.tiempoPolvo > 0) return;
+    this.tiempoPolvo = SENSACION.intervaloPolvo;
+    const atras = this.flipX ? 8 : -8;
+    this.scene.efectos?.polvo(this.x + atras, this.body.bottom, 1, this.colorPolvo);
+  }
+
+  /** Polvo al tocar suelo tras una caída rápida; más polvo cuanto más fuerte cae. */
+  revisarAterrizaje(enSuelo) {
+    if (!enSuelo || this.enSueloAnterior || this.vyAnterior < SENSACION.aterrizajeFuerte) return;
+    const cantidad = Math.min(12, Math.round(this.vyAnterior / 70));
+    this.scene.efectos?.polvo(this.x, this.body.bottom, cantidad, this.colorPolvo);
+  }
+
+  recordarFotograma(enSuelo) {
+    this.enSueloAnterior = enSuelo;
+    this.vyAnterior = this.body.velocity.y;
   }
 
   saltar() {

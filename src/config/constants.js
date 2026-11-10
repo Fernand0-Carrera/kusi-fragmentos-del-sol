@@ -40,6 +40,21 @@ export const FISICA = {
   empujeDano: 260
 };
 
+// Dash de Kusi: impulso horizontal corto (≈ 3 baldosas), uno por salto
+export const DASH = {
+  velocidad: 600,
+  duracion: 0.16,         // segundos que dura el impulso
+  enfriamiento: 0.45      // segundos de espera antes de poder repetirlo
+};
+
+// Detalles de "game feel": polvo, estelas y pausa breve al pisar enemigos
+export const SENSACION = {
+  pausaPisoton: 70,       // milisegundos que se congela la física al pisar un enemigo
+  aterrizajeFuerte: 320,  // velocidad de caída desde la que se levanta polvo al aterrizar
+  intervaloPolvo: 0.11,   // segundos entre nubecitas de polvo al correr
+  intervaloEstela: 0.03   // segundos entre siluetas de la estela del dash
+};
+
 export const JUGADOR = {
   vidasIniciales: 3,
   vidasMaximas: 5,

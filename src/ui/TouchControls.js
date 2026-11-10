@@ -4,18 +4,20 @@ import { ANCHO, ALTO, COLOR } from '../config/constants.js';
 
 /**
  * Controles táctiles equivalentes al teclado: izquierda y derecha abajo a la
- * izquierda, saltar abajo a la derecha. Admite varios dedos a la vez (moverse
- * y saltar al mismo tiempo) y suelta el botón si el dedo se desliza fuera.
+ * izquierda; saltar abajo a la derecha y, a su lado, el dash. Admite varios
+ * dedos a la vez (moverse, saltar y hacer dash al mismo tiempo) y suelta el
+ * botón si el dedo se desliza fuera.
  */
 export default class TouchControls {
   constructor(scene) {
     this.scene = scene;
-    scene.input.addPointer(2); // 3 punteros simultáneos en total
+    scene.input.addPointer(3); // 4 punteros simultáneos en total
     reiniciarEntradaTactil();
     this.botones = [
       this.crearBoton(90, ALTO - 80, ICONO.IZQUIERDA, 'izquierda'),
       this.crearBoton(210, ALTO - 80, ICONO.DERECHA, 'derecha'),
-      this.crearBoton(ANCHO - 100, ALTO - 85, ICONO.SALTAR, 'saltar', 62)
+      this.crearBoton(ANCHO - 100, ALTO - 85, ICONO.SALTAR, 'saltar', 62),
+      this.crearBoton(ANCHO - 230, ALTO - 62, ICONO.DASH, 'dash', 46)
     ];
     scene.events.once('shutdown', reiniciarEntradaTactil);
   }

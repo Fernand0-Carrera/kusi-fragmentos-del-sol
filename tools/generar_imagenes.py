@@ -593,7 +593,7 @@ niebla.save(os.path.join(IMG, 'niebla.png'))
 
 # ---------------------------------------------------------------------------
 # Iconos de interfaz (12x12 -> 24x24... ampliado a 48 para pantallas táctiles)
-# 0 pausa, 1 sonido, 2 silencio, 3 izquierda, 4 derecha, 5 saltar, 6 pantalla completa
+# 0 pausa, 1 sonido, 2 silencio, 3 izquierda, 4 derecha, 5 saltar, 6 pantalla completa, 7 dash
 # ---------------------------------------------------------------------------
 def icono(tipo):
     L = Lienzo(12, 12)
@@ -623,10 +623,16 @@ def icono(tipo):
         for (x, y) in ((1, 1), (8, 1), (1, 8), (8, 8)):
             L.r(x, y, 3, 1, c); L.r(x if x == 1 else x + 2, y, 1, 3, c)
         L.r(1, 10, 3, 1, c); L.r(8, 10, 3, 1, c)
+    elif tipo == 7:
+        # dash: doble flecha ">>"
+        for x0 in (1, 6):
+            for k in range(4):
+                L.r(x0 + k, 2 + k, 2, 1, c)
+                L.r(x0 + k, 9 - k, 2, 1, c)
     return contorno(L.im)
 
 
-guardar(hoja([icono(i) for i in range(7)]), 'iconos.png', k=4)  # cuadros 48x48
+guardar(hoja([icono(i) for i in range(8)]), 'iconos.png', k=4)  # cuadros 48x48
 
 
 # ---------------------------------------------------------------------------
