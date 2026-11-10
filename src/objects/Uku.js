@@ -98,6 +98,7 @@ export default class Uku extends Phaser.Physics.Arcade.Sprite {
         actualizar() {
           if (this.fsm.tiempoEnEstado > 0.8 && !this.rayoDisparado) {
             this.rayoActual?.lanzar();
+            audio.efecto(SFX.RAYO);
             this.rayoDisparado = true;
           }
           if (this.rayoDisparado && (!this.rayoActual?.active || this.fsm.tiempoEnEstado > 1.5)) {
@@ -149,11 +150,13 @@ export default class Uku extends Phaser.Physics.Arcade.Sprite {
 
       golpeado: {
         entrar() {
+          const faseAnterior = this.fase;
           this.vida -= 1;
+          if (this.fase !== faseAnterior) this.cambiarFase();
           EventBus.emit(EVENTOS.JEFE_VIDA, this.vida, this.vidaMaxima, this.fase);
           audio.efecto(SFX.GOLPE_JEFE);
           this.setTintFill(0xffffff);
-          this.scene.time.delayedCall(120, () => this.clearTint());
+          this.scene.time.delayedCall(120, () => this.setTint(this.colorFase()));
           this.setVelocity(0, -120);
         },
         actualizar() {
@@ -192,6 +195,17 @@ export default class Uku extends Phaser.Physics.Arcade.Sprite {
     if (this.vida > this.vidaMaxima * 2 / 3) return 1;
     if (this.vida > this.vidaMaxima / 3) return 2;
     return 3;
+  }
+
+  colorFase() {
+    return [0, 0x9fe3ff, 0xffc857, 0xff6b62][this.fase];
+  }
+
+  cambiarFase() {
+    const fase = this.fase;
+    this.setTint(this.colorFase());
+    this.scene.cameras.main.shake(fase === 3 ? 700 : 450, fase === 3 ? 0.014 : 0.009);
+    audio.efecto(SFX.RUGIDO, { detune: fase === 3 ? 180 : -120 });
   }
 
   /** Arranca la pelea (lo llama GameScene al cruzar el activador de la arena). */

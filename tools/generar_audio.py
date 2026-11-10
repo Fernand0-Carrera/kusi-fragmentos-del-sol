@@ -312,6 +312,19 @@ def sfx_hielo():
     return r * decaimiento(n, 0.03) * 0.6
 
 
+def sfx_rayo():
+    dur = 1.0
+    n = int(SR * dur)
+    s = np.zeros(n)
+    trueno = barrido(105, 34, dur, 'seno') * decaimiento(n, 0.42)
+    rugido = np.convolve(ruido(dur), np.ones(120) / 120, mode='same') * decaimiento(n, 0.3)
+    crepitar = np.diff(np.concatenate([[0], ruido(0.22)])) * decaimiento(int(SR * 0.22), 0.055)
+    mezclar(s, trueno * 0.72 + rugido * 1.8, 0)
+    mezclar(s, crepitar * 0.55, 0.01)
+    mezclar(s, barrido(72, 28, 0.65, 'seno') * decaimiento(int(SR * 0.65), 0.3) * 0.45, 0.08)
+    return normalizar(s, 0.82)
+
+
 def sfx_portal():
     s = barrido(200, 1200, 0.7, 'seno') * 0.5 + barrido(300, 1800, 0.7, ciclo=0.5) * 0.15
     return s * envolvente(len(s), 0.02, 0.2, 0.7, 0.25)
@@ -344,6 +357,7 @@ PISTAS = {
     'sfx_salto': sfx_salto, 'sfx_fragmento': sfx_fragmento, 'sfx_pisoton': sfx_pisoton,
     'sfx_dano': sfx_dano, 'sfx_control': sfx_control, 'sfx_resorte': sfx_resorte,
     'sfx_golpe_jefe': sfx_golpe_jefe, 'sfx_rugido': sfx_rugido, 'sfx_hielo': sfx_hielo,
+    'sfx_rayo': sfx_rayo,
     'sfx_portal': sfx_portal, 'sfx_clic': sfx_clic, 'sfx_corazon': sfx_corazon,
 }
 

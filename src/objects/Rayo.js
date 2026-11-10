@@ -50,7 +50,7 @@ export default class Rayo extends Phaser.Physics.Arcade.Image {
     });
   }
 
-  lanzar(velocidadY = 630) {
+  lanzar(velocidadY = 730) {
     this.enableBody(true, this.x, this.suelo - 300, true, true);
       this.body.setSize(20, 56).setOffset(2, 0);
     this.body.setAllowGravity(false);

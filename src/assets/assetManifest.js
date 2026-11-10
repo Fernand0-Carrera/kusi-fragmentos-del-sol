@@ -32,7 +32,7 @@ export const HOJAS = [
 export const AUDIOS = [
   'musica_menu', 'musica_nivel', 'musica_jefe', 'jingle_victoria', 'jingle_derrota',
   'sfx_salto', 'sfx_fragmento', 'sfx_pisoton', 'sfx_dano', 'sfx_control', 'sfx_resorte',
-  'sfx_golpe_jefe', 'sfx_rugido', 'sfx_hielo', 'sfx_portal', 'sfx_clic', 'sfx_corazon'
+  'sfx_golpe_jefe', 'sfx_rugido', 'sfx_hielo', 'sfx_rayo', 'sfx_portal', 'sfx_clic', 'sfx_corazon'
 ].map((clave) => ({ clave, rutas: [`${AUD}${clave}.ogg`, `${AUD}${clave}.mp3`] }));
 
 export const FUENTE_BITMAP = { clave: 'pixel', imagen: 'assets/fonts/pixel.png', xml: 'assets/fonts/pixel.xml' };
