@@ -16,6 +16,7 @@ import ParallaxBackground from '../ui/ParallaxBackground.js';
 import Player from '../objects/Player.js';
 import Uku from '../objects/Uku.js';
 import IceShard from '../objects/IceShard.js';
+import Rayo from '../objects/Rayo.js';
 
 /**
  * Escena de juego: construye el nivel, crea a Kusi, conecta colisiones,
@@ -99,20 +100,22 @@ export default class GameScene extends Phaser.Scene {
     this.mostrarMensaje(`Nivel ${this.numeroNivel}: ${this.datosNivel.nombre}`, 2600);
   }
 
-  /** Crea a Uku, su pool de esquirlas y la zona que inicia la pelea. */
+  /** Crea a Uku, sus pools de proyectiles y la zona que inicia la pelea. */
   prepararJefe() {
     const { arena } = this.datosNivel;
     const suelo = 14 * TILE;
     this.esquirlas = this.physics.add.group({ classType: IceShard, maxSize: 16, runChildUpdate: false });
+    this.rayos = this.physics.add.group({ classType: Rayo, maxSize: 4, runChildUpdate: false });
     this.jefe = new Uku(this, this.nivel.posicionJefe.x, this.nivel.posicionJefe.y, {
       arena: { izquierda: arena.desde * TILE, derecha: arena.hasta * TILE - TILE, suelo },
       esquirlas: this.esquirlas,
+      rayos: this.rayos,
       objetivo: this.jugador
     });
     const x = this.nivel.activadorArenaX;
     this.zonaArena = this.add.zone(x + TILE / 2, suelo / 2, TILE, suelo);
     this.physics.add.existing(this.zonaArena, true);
-    this.colisiones.registrarJefe(this.jefe, this.esquirlas, this.zonaArena);
+    this.colisiones.registrarJefe(this.jefe, this.esquirlas, this.rayos, this.zonaArena);
   }
 
   update(time, delta) {
@@ -129,6 +132,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Las esquirlas que salen de la pantalla vuelven al pool
     this.esquirlas?.children.each((e) => { if (e.active && e.y > this.nivel.altoPx + 50) e.romper(); });
+    this.rayos?.children.each((rayo) => { if (rayo.active && rayo.y > this.nivel.altoPx + 50) rayo.terminar(); });
   }
 
   /** Desactiva efectos costosos y recuerda la preferencia para próximas partidas. */
@@ -149,12 +153,12 @@ export default class GameScene extends Phaser.Scene {
   }
 
   /** Devuelve true si Kusi efectivamente recibió el golpe. */
-  danarJugador(origenX) {
+  danarJugador(origenX, vidas = 1) {
     if (this.completando || this.terminado) return false;
     if (!this.jugador.recibirDano(origenX)) return false;
     audio.efecto(SFX.DANO);
     this.cameras.main.shake(160, 0.006);
-    if (!sesion.perderVida()) this.derrota();
+    if (!sesion.perderVida(vidas)) this.derrota();
     return true;
   }
 

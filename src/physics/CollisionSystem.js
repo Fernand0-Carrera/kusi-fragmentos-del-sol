@@ -44,13 +44,17 @@ export default class CollisionSystem {
   }
 
   /** Interacciones del jefe y sus proyectiles (solo en el nivel 3). */
-  registrarJefe(jefe, esquirlas, zonaArena) {
+  registrarJefe(jefe, esquirlas, rayos, zonaArena) {
     const { physics } = this.scene;
     const j = this.jugador;
     physics.add.collider(jefe, this.nivel.capa);
     physics.add.collider(esquirlas, this.nivel.capa, (esquirla) => esquirla.romper());
     physics.add.overlap(j, esquirlas, (_j, esquirla) => {
       if (this.scene.danarJugador(esquirla.x)) esquirla.romper();
+    });
+    physics.add.collider(rayos, this.nivel.capa, (rayo) => rayo.terminar());
+    physics.add.overlap(j, rayos, (_j, rayo) => {
+      if (this.scene.danarJugador(rayo.x, 2)) rayo.terminar();
     });
     physics.add.overlap(j, jefe, () => this.contactoJefe(jefe));
     physics.add.overlap(j, zonaArena, () => this.scene.activarArena());

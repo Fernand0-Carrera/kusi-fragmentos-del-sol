@@ -54,8 +54,8 @@ class GameSession {
   }
 
   /** Devuelve true si aún quedan vidas. */
-  perderVida() {
-    this.vidas = Math.max(0, this.vidas - 1);
+  perderVida(cantidad = 1) {
+    this.vidas = Math.max(0, this.vidas - cantidad);
     this.emitir();
     return this.vidas > 0;
   }

@@ -56,7 +56,7 @@ export default class UIScene extends Phaser.Scene {
       [EVENTOS.AUDIO_CAMBIO]: (mute) => this.botonSonido.icono.setFrame(mute ? ICONO.SILENCIO : ICONO.SONIDO),
       [EVENTOS.MENSAJE]: (texto, duracion) => this.mostrarMensaje(texto, duracion),
       [EVENTOS.JEFE_APARECE]: () => this.barraJefe.setVisible(true),
-      [EVENTOS.JEFE_VIDA]: (vida, max) => this.barraJefe.actualizar(vida, max),
+      [EVENTOS.JEFE_VIDA]: (vida, max, fase) => this.barraJefe.actualizar(vida, max, fase),
       'nivel:completado': (resumen) => this.mostrarResumen(resumen)
     };
     Object.entries(oyentes).forEach(([evento, fn]) => EventBus.on(evento, fn));
