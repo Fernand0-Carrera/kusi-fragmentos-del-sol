@@ -91,8 +91,11 @@ Para crear un nivel nuevo basta con agregar un objeto al arreglo `NIVELES`.
 - **Tiempo coyote (0,1 s):** se puede saltar justo después de salir de un borde.
 - **Buffer de salto (0,12 s):** si se pulsa saltar un instante antes de aterrizar, el salto no se pierde.
 - **Salto variable:** al soltar el botón mientras sube, la velocidad se multiplica por 0,45.
+- **Dash:** con Shift, X o el botón táctil, Kusi sale disparada en horizontal a 600 px/s durante 0,16 s (unas 3 baldosas). Es un estado propio de la máquina de estados (`dash`): al entrar apaga la gravedad y al salir la devuelve y recorta la velocidad a la de carrera. Solo hay un dash por salto (se recarga al tocar suelo) y tiene 0,45 s de enfriamiento; si choca con una pared, termina antes.
+- **Polvo y estela:** al aterrizar tras una caída rápida se levanta polvo, más cuanto más fuerte cae; al correr salen nubecitas en los pies, y durante el dash queda una estela de siluetas que se desvanecen. En el nivel de hielo el polvo es celeste.
+- **Pausa al pisar enemigos (hit stop):** al pisar un enemigo la física se congela 70 ms para que el golpe se sienta. Si llega otro pisotón durante la pausa, se alarga en vez de acumularse.
 - **Invulnerabilidad:** tras un golpe hay 1,3 s de parpadeo (tween de alpha) durante los que no recibe más daño.
-- Los números están en `config/constants.js`, en el objeto `FISICA`. Con salto 560 y gravedad 1300, la altura máxima es v²/2g ≈ 120 px (unas 3,7 baldosas); los niveles respetan ese límite.
+- Los números están en `config/constants.js`, en los objetos `FISICA`, `DASH` y `SENSACION`. Con salto 560 y gravedad 1300, la altura máxima es v²/2g ≈ 120 px (unas 3,7 baldosas); los niveles respetan ese límite.
 
 ## 7. IA de enemigos y del jefe
 
@@ -139,7 +142,7 @@ Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacena
 | Técnica | Dónde |
 | --- | --- |
 | Object pooling de esquirlas (`group.get`, `maxSize: 16`) | `objects/IceShard.js`, `GameScene.prepararJefe` |
-| Un solo emisor de partículas reutilizado con `explode` | `managers/EffectsManager.js` |
+| Un emisor por tipo de partícula reutilizado con `explode`, y un pool de siluetas para la estela del dash | `managers/EffectsManager.js` |
 | Minimapa dibujado una vez en una textura | `ui/Minimap.js` |
 | Fondos como TileSprite recortados a su franja visible | `ui/ParallaxBackground.js`, `fondos.json` |
 | Phaser en un archivo separado (caché del navegador) | `vite.config.js` |

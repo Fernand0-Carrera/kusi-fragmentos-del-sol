@@ -264,6 +264,17 @@ def sfx_salto():
     return s * decaimiento(len(s), 0.09) * 0.5
 
 
+def sfx_dash():
+    """Soplido corto: ruido suavizado que sube y baja, con un zumbido que se acelera."""
+    dur = 0.22
+    n = int(SR * dur)
+    t = t_de(dur)
+    soplido = np.convolve(ruido(dur), np.ones(5) / 5, mode='same')
+    forma = np.sin(np.pi * np.clip(t / dur, 0, 1)) ** 2 * decaimiento(n, 0.2)
+    zumbido = barrido(170, 540, dur, ciclo=0.25) * 0.16
+    return normalizar((soplido * 1.6 + zumbido) * forma, 0.7)
+
+
 def sfx_fragmento():
     a = cuadrada(freq('E6'), 0.06, 0.5) * 0.4
     b = cuadrada(freq('A6'), 0.18, 0.5) * decaimiento(int(SR * 0.18), 0.07) * 0.4
@@ -359,6 +370,7 @@ PISTAS = {
     'sfx_golpe_jefe': sfx_golpe_jefe, 'sfx_rugido': sfx_rugido, 'sfx_hielo': sfx_hielo,
     'sfx_rayo': sfx_rayo,
     'sfx_portal': sfx_portal, 'sfx_clic': sfx_clic, 'sfx_corazon': sfx_corazon,
+    'sfx_dash': sfx_dash,
 }
 
 if __name__ == '__main__':

@@ -23,13 +23,13 @@ export default class HelpScene extends Phaser.Scene {
       'Flechas o A / D: moverse',
       'Espacio, W, Z o Flecha arriba: saltar',
       'Mantén saltar para llegar más alto',
-      'P o Esc: pausa',
-      'M: silenciar'
+      'Shift o X: dash (uno por salto)',
+      'P o Esc: pausa    M: silenciar'
     ]);
     columna(560, 'Pantalla táctil', [
       'Botones abajo a la izquierda:',
       'moverse',
-      'Botón abajo a la derecha: saltar',
+      'Abajo a la derecha: saltar y dash',
       'Iconos arriba: pausa, sonido',
       'y pantalla completa'
     ]);

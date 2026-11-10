@@ -47,13 +47,14 @@ La carpeta `dist/` se puede publicar en cualquier servidor estático (GitHub Pag
 | --- | --- | --- |
 | Moverse | Flechas ← → o A / D | Botones ◀ ▶ abajo a la izquierda |
 | Saltar (mantener = salto más alto) | Espacio, W, Z o Flecha arriba | Botón ▲ abajo a la derecha |
+| Dash (uno por salto) | Shift o X | Botón ≫ junto al de saltar |
 | Pausa | P o Esc | Icono de pausa (arriba a la derecha) |
 | Silenciar | M | Icono de sonido |
 | Pantalla completa | — | Icono de pantalla completa |
 | Mostrar FPS | F | Abrir el juego con `?fps` |
 | Navegar menús | Flechas + Enter | Tocar el botón |
 
-Los controles táctiles aparecen solos en dispositivos táctiles y admiten varios dedos (correr y saltar a la vez). En móviles en vertical se pide girar el dispositivo.
+Los controles táctiles aparecen solos en dispositivos táctiles y admiten varios dedos (correr, saltar y hacer dash a la vez). En móviles en vertical se pide girar el dispositivo.
 
 ## Cómo se juega
 
@@ -103,7 +104,7 @@ La explicación detallada de la arquitectura está en [docs/GUIA_TECNICA.md](doc
 | Movimiento, colisiones, puntaje, HUD | `Player`, `CollisionSystem`, `GameSession`, `UIScene` |
 | Enemigos, victoria y derrota | Neblino, murciélago, púas, jefe Uku; Puerta del Sol; sin vidas = Game Over |
 | Arcade Physics, overlaps, triggers, gravedad y rebotes | Gravedad global, tilemap con colisiones de un solo sentido, overlaps de objetos, triggers (apachetas, arena del jefe, meta), resortes y pisotones |
-| Audio | 3 músicas en bucle, 2 jingles y 12 efectos; botón y tecla M para silenciar |
+| Audio | 3 músicas en bucle, 2 jingles y 14 efectos; botón y tecla M para silenciar |
 | Persistencia (localStorage) | Récord, nivel alcanzado, partida para "Continuar", silencio y modo de gráficos |
 | Responsive y táctil | `Scale.FIT` 960×540, controles táctiles multitáctiles, pantalla completa |
 | Rendimiento | Object pooling, minimapa precalculado, capas de fondo recortadas, calidad adaptativa por debajo de 45 FPS |

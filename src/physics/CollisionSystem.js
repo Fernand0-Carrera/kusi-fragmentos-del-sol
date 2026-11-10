@@ -1,4 +1,4 @@
-import { FISICA, PUNTOS } from '../config/constants.js';
+import { FISICA, PUNTOS, SENSACION } from '../config/constants.js';
 import { audio } from '../managers/AudioManager.js';
 import { sesion } from '../managers/GameSession.js';
 import { SFX } from '../audio/audioKeys.js';
@@ -89,6 +89,7 @@ export default class CollisionSystem {
       this.jugador.impulsar(FISICA.rebotePisoton, true);
       sesion.sumarPuntos(PUNTOS.enemigo);
       audio.efecto(SFX.PISOTON);
+      this.scene.efectos.pausaBreve(SENSACION.pausaPisoton);
       this.scene.efectos.chispas(enemigo.x, enemigo.y, 0xc9d6e3);
       this.scene.efectos.textoFlotante(enemigo.x, enemigo.y - 20, `+${PUNTOS.enemigo}`);
     } else {
