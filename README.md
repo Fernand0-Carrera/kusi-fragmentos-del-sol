@@ -51,7 +51,6 @@ La carpeta `dist/` se puede publicar en cualquier servidor estático (GitHub Pag
 | Pausa | P o Esc | Icono de pausa (arriba a la derecha) |
 | Silenciar | M | Icono de sonido |
 | Pantalla completa | — | Icono de pantalla completa |
-| Mostrar FPS | F | Abrir el juego con `?fps` |
 | Navegar menús | Flechas + Enter | Tocar el botón |
 
 Los controles táctiles aparecen solos en dispositivos táctiles y admiten varios dedos (correr, saltar y hacer dash a la vez). En móviles en vertical se pide girar el dispositivo.
@@ -99,13 +98,13 @@ La explicación detallada de la arquitectura está en [docs/GUIA_TECNICA.md](doc
 
 | Requisito | Implementación |
 | --- | --- |
-| Escenas, loader, estados | 10 escenas; `PreloadScene` con barra de progreso; `GameStateManager` y `StateMachine` |
+| Escenas, loader, estados | 11 escenas; `PreloadScene` con barra de progreso; `GameStateManager` y `StateMachine` |
 | Menú, pausa, Game Over, reinicio | `MenuScene`, `PauseScene` (continuar, reiniciar, salir), `GameOverScene` (reintentar) |
 | Movimiento, colisiones, puntaje, HUD | `Player`, `CollisionSystem`, `GameSession`, `UIScene` |
 | Enemigos, victoria y derrota | Neblino, murciélago, púas, jefe Uku; Puerta del Sol; sin vidas = Game Over |
 | Arcade Physics, overlaps, triggers, gravedad y rebotes | Gravedad global, tilemap con colisiones de un solo sentido, overlaps de objetos, triggers (apachetas, arena del jefe, meta), resortes y pisotones |
 | Audio | 3 músicas en bucle, 2 jingles y 14 efectos; botón y tecla M para silenciar |
-| Persistencia (localStorage) | Récord, nivel alcanzado, partida para "Continuar", silencio y modo de gráficos |
+| Persistencia (localStorage) | Récord, nivel alcanzado (desbloquea niveles en "Elegir nivel"), partida para "Continuar", silencio y modo de gráficos |
 | Responsive y táctil | `Scale.FIT` 960×540, controles táctiles multitáctiles, pantalla completa |
 | Rendimiento | Object pooling, minimapa precalculado, capas de fondo recortadas, calidad adaptativa por debajo de 45 FPS |
 | Accesibilidad | Paleta de alto contraste con contorno en el texto, instrucciones en "Cómo jugar", foco visible con teclado, mute |
