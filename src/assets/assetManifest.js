@@ -8,7 +8,7 @@ const IMG = 'assets/images/';
 const AUD = 'assets/audio/';
 
 export const IMAGENES = [
-  'logo', 'tileset', 'losa', 'puas', 'esquirla', 'particula', 'estrella', 'niebla',
+  'logo', 'tileset', 'losa', 'puas', 'esquirla', 'escupitajo', 'particula', 'estrella', 'niebla',
   'fondo_valle_0', 'fondo_valle_1', 'fondo_valle_2',
   'fondo_hielo_0', 'fondo_hielo_1', 'fondo_hielo_2',
   'fondo_crater_0', 'fondo_crater_1', 'fondo_crater_2'
@@ -19,6 +19,8 @@ export const HOJAS = [
   { clave: 'kusi', ruta: `${IMG}kusi.png`, ancho: 36, alto: 48 },
   { clave: 'neblino', ruta: `${IMG}neblino.png`, ancho: 36, alto: 32 },
   { clave: 'murcielago', ruta: `${IMG}murcielago.png`, ancho: 40, alto: 28 },
+  { clave: 'llama', ruta: `${IMG}llama.png`, ancho: 64, alto: 64 },
+  { clave: 'atoq', ruta: `${IMG}atoq.png`, ancho: 64, alto: 48 },
   { clave: 'uku', ruta: `${IMG}uku.png`, ancho: 100, alto: 100 },
   { clave: 'fragmento', ruta: `${IMG}fragmento.png`, ancho: 28, alto: 28 },
   { clave: 'corazon', ruta: `${IMG}corazon.png`, ancho: 26, alto: 24 },

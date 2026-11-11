@@ -2,6 +2,9 @@ import { TILE, CAPAS } from '../config/constants.js';
 import Collectible from '../objects/Collectible.js';
 import Neblino from '../objects/Neblino.js';
 import Murcielago from '../objects/Murcielago.js';
+import Llama from '../objects/Llama.js';
+import Atoq from '../objects/Atoq.js';
+import Escupitajo from '../objects/Escupitajo.js';
 import Checkpoint from '../objects/Checkpoint.js';
 import Spring from '../objects/Spring.js';
 import Spikes from '../objects/Spikes.js';
@@ -40,6 +43,8 @@ export default class LevelBuilder {
       fragmentos: scene.add.group(),
       corazones: scene.add.group(),
       enemigos: scene.add.group({ runChildUpdate: true }),
+      // Pool de escupitajos: se crea antes de leer el mapa porque las llamas lo necesitan
+      escupitajos: scene.physics.add.group({ classType: Escupitajo, maxSize: 12, runChildUpdate: true }),
       puas: scene.add.group(),
       puyas: scene.add.group(),
       apachetas: scene.add.group(),
@@ -98,6 +103,9 @@ export default class LevelBuilder {
       case 'h': r.corazones.add(new Collectible(scene, centroX, centroY, 'corazon')); break;
       case 'e': r.enemigos.add(new Neblino(scene, centroX, piso - 16, capa, factor)); break;
       case 'b': r.enemigos.add(new Murcielago(scene, centroX, centroY, factor)); break;
+      // Los cuadros miden 64x64 y 64x48 con origen al centro: se suben la mitad de su alto
+      case 'l': r.enemigos.add(new Llama(scene, centroX, piso - 32, r.escupitajos, factor)); break;
+      case 'z': r.enemigos.add(new Atoq(scene, centroX, piso - 24, capa, factor)); break;
       case '^': r.puas.add(new Spikes(scene, centroX, centroY)); break;
       case 's': r.puyas.add(new Spring(scene, centroX, piso - 16)); break;
       case 'c': r.apachetas.add(new Checkpoint(scene, centroX, piso - 26)); break;
