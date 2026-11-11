@@ -234,6 +234,331 @@ guardar(hoja([murcielago(i) for i in range(3)]), 'murcielago.png')  # 40x28
 
 
 # ---------------------------------------------------------------------------
+# Enemigos poseídos por la niebla de Uku: Llama hechizada y Atoq de niebla.
+#  - Cuerpo FRÍO (azul lavanda) = poseído; cuerpo CÁLIDO = liberado.
+#  - Color ESPECTRAL (verde-cian) reservado para ojos y remolinos de niebla;
+#    la niebla va en una capa propia, sin contorno oscuro.
+#  - Todos los cuadros de un animal comparten tamaño y línea de suelo.
+#  - Miran a la IZQUIERDA (como el Neblino); en el juego se usa setFlipX.
+# ---------------------------------------------------------------------------
+# --- Señal de posesión (compartida por los dos animales)
+ESP = '#7af2c9'       # verde-cian espectral
+ESP_O = '#3fb59a'     # espectral oscuro (borde de los remolinos)
+ESP_BRILLO = '#d9fff2'
+
+# --- Proyectil (escarcha, mismo lenguaje visual que la esquirla de Uku)
+HIELO, HIELO_O = '#9fe3ff', '#5fa8d6'
+
+
+class Capa(Lienzo):
+    """Lienzo con margen: las coordenadas del dibujo son locales al animal."""
+
+    def __init__(self, w, h, mx, my):
+        super().__init__(w + mx, h + my)
+        self.mx, self.my = mx, my
+
+    def p(self, x, y, c):
+        super().p(x + self.mx, y + self.my, c)
+
+
+def fundir(cuerpo, niebla, alfa=225):
+    """Contorno solo al cuerpo; la niebla se superpone semitransparente y con borde espectral."""
+    base = contorno(cuerpo.im)
+    nb = contorno(niebla.im, ESP_O)
+    px = nb.load()
+    for x in range(nb.width):
+        for y in range(nb.height):
+            r, g, b, a = px[x, y]
+            if a:
+                px[x, y] = (r, g, b, alfa)
+    base.alpha_composite(nb)
+    return base
+
+
+def remolino(N, x, y, tam=1, c=ESP):
+    """Voluta de niebla pequeña (forma de 'S' tumbada)."""
+    if tam == 0:
+        N.r(x, y, 2, 1, c)
+        return
+    N.r(x + 1, y, 2, 1, c)
+    N.r(x, y + 1, 1, 1, c); N.r(x + 3, y + 1, 1, 1, c)
+    N.r(x + 1, y + 2, 2, 1, c)
+    N.p(x + 2, y + 1, ESP_BRILLO)
+
+
+def particula(N, x, y, c=ESP):
+    N.r(x, y, 2, 2, c)
+
+
+# ===========================================================================
+# LLAMA HECHIZADA — cuadro de 32x32 (64x64 en el juego), suelo en la fila 31
+# 0-1 quieta · 2 inflada (aviso) · 3 escupe · 4 liberándose · 5 liberada
+# ===========================================================================
+LL_W, LL_H, LL_MX, LL_MY = 26, 28, 6, 4
+LL_FRIO = ('#a3b0e6', '#7381c2', '#4c5592', '#c9d2f5')    # cuerpo, sombra, oscuro, claro
+LL_CALIDO = (PAL['lana'], '#dcc39c', '#9c7a52', '#fff7e8')
+
+
+def llama(cuadro):
+    C = Capa(LL_W, LL_H, LL_MX, LL_MY)
+    N = Capa(LL_W, LL_H, LL_MX, LL_MY)
+    libre = cuadro == 5
+    c, s, o, cl = LL_CALIDO if libre else LL_FRIO
+
+    # Postura de la cabeza según el estado
+    hx, hy = {0: (0, 0), 1: (0, 1), 2: (0, 1), 3: (-2, 1), 4: (0, -1), 5: (0, -2)}[cuadro]
+
+    # --- Patas (suelo fijo: pezuñas en la fila 27)
+    patas = [(9, c, True), (12, s, False), (18, c, True), (21, s, False)]
+    for x, col, cerca in patas:
+        if libre and x == 9:          # liberada: levanta la pata delantera (paso alegre)
+            C.r(9, 22, 2, 2, col); C.r(8, 23, 2, 2, col); C.r(7, 25, 2, 1, o)
+            continue
+        C.r(x, 22, 2, 5, col)
+        C.r(x, 27, 2, 1, o)
+
+    # --- Cuerpo lanudo
+    C.r(10, 16, 12, 1, c)
+    for x in (11, 14, 17, 20):
+        C.p(x, 15, c)                 # bultitos de lana en el lomo
+    C.r(8, 17, 16, 4, c)
+    C.r(9, 21, 14, 1, s)
+    C.r(9, 18, 1, 2, cl)              # pecho claro
+    # cola: alta y contenta si está libre, caída si está poseída
+    if libre:
+        C.r(23, 13, 2, 3, c); C.p(24, 12, c)
+    else:
+        C.r(24, 17, 1, 3, s); C.p(23, 17, c)
+
+    # --- Manta tejida (textil andino)
+    C.r(12, 16, 8, 1, PAL['grana'])
+    C.r(12, 17, 8, 1, PAL['oro'])
+    for x in (13, 15, 17, 19):
+        C.p(x, 17, PAL['grana2'])
+    C.r(12, 18, 8, 1, PAL['turquesa'])
+    for x in (12, 14, 16, 18):
+        C.p(x, 19, PAL['grana'])      # flecos
+
+    # --- Cuello largo (se separa de la cabeza con la sombra de la mandíbula)
+    cuello_arriba = 8 + hy
+    C.r(8 + max(hx, -1), cuello_arriba, 4, 17 - cuello_arriba, c)
+    C.r(11 + max(hx, -1), cuello_arriba + 1, 1, 16 - cuello_arriba, s)
+    if hx < 0:                        # cuello inclinado hacia delante
+        C.r(8 + hx, cuello_arriba, 3, 3, c)
+
+    # --- Cabeza: óvalo horizontal con hocico corto y nariz pequeña
+    X, Y = hx, hy
+    C.r(5 + X, 4 + Y, 6, 1, c)
+    C.r(3 + X, 5 + Y, 8, 1, c)
+    C.r(2 + X, 6 + Y, 9, 1, c)
+    C.r(2 + X, 7 + Y, 8, 1, c)
+    C.r(4 + X, 8 + Y, 5, 1, s)        # mandíbula en sombra: marca dónde acaba la cabeza
+    C.p(2 + X, 6 + Y, o)              # nariz
+    C.p(9 + X, 7 + Y, s)
+    # orejas altas en forma de banana
+    C.r(5 + X, 1 + Y, 2, 3, c); C.p(6 + X, 0 + Y, c)
+    C.r(9 + X, 1 + Y, 2, 3, c); C.p(9 + X, 0 + Y, c)
+    C.p(6 + X, 2 + Y, s); C.p(9 + X, 2 + Y, s)          # interior de la oreja
+    C.r(7 + X, 3 + Y, 2, 1, cl)                          # copete de lana
+    C.p(4 + X, 2 + Y, PAL['grana']); C.p(4 + X, 3 + Y, PAL['grana2'])   # borlas
+    C.p(11 + X, 2 + Y, PAL['turquesa']); C.p(11 + X, 3 + Y, PAL['turq2'])
+
+    # --- Ojos y boca (la expresión cuenta el estado)
+    ex, ey = 5 + X, 5 + Y
+    if cuadro in (0, 1):              # poseída: ojo luminoso y ceja enojada
+        C.r(ex, ey, 2, 1, ESP); C.p(ex, ey, ESP_BRILLO)
+        C.p(ex - 1, ey - 1, PAL['noche']); C.p(ex, ey - 1, o)
+    elif cuadro == 2:                 # inflada: ojo apretado + cachete enorme
+        C.r(ex - 1, ey, 3, 1, PAL['noche'])
+        C.p(ex + 1, ey - 1, ESP)
+        C.r(0 + X, 6 + Y, 5, 4, c); C.r(1 + X, 10 + Y, 3, 1, c); C.r(-1 + X, 7 + Y, 1, 2, c)
+        C.r(0 + X, 7 + Y, 3, 2, cl); C.p(1 + X, 7 + Y, '#ffffff')
+        C.p(0 + X, 6 + Y, o)
+    elif cuadro == 3:                 # escupe: ojo muy abierto y boca abierta
+        C.r(ex, ey, 2, 1, ESP_BRILLO); C.p(ex + 1, ey, ESP)
+        C.p(ex - 1, ey - 1, PAL['noche'])
+        C.r(2 + X, 7 + Y, 3, 2, PAL['noche'])            # boca abierta
+        C.r(3 + X, 9 + Y, 3, 1, s)                       # mandíbula baja
+    elif cuadro == 4:                 # liberándose: destello blanco en el ojo
+        C.r(ex, ey, 2, 1, '#ffffff')
+        C.p(ex - 1, ey - 1, o)
+    else:                             # liberada: ojo tranquilo con pestaña y sonrisa
+        C.p(ex, ey, PAL['noche']); C.p(ex + 1, ey, o)
+        C.p(ex - 1, ey - 1, PAL['noche'])
+        C.p(3 + X, 7 + Y, o); C.p(4 + X, 8 + Y, o)
+
+    # --- Capa de niebla espectral (solo mientras está poseída)
+    if cuadro in (0, 1):
+        d = cuadro                    # los remolinos se desplazan entre cuadros
+        remolino(N, 12 + d, 2 - d)
+        remolino(N, 15 - d, 12 + d, 0)
+        remolino(N, 19 + d, 12 - d)
+        N.p(13 - d, 6, ESP)
+    elif cuadro == 2:                 # aviso: la niebla se concentra en la cabeza
+        remolino(N, 12, 1); remolino(N, 12, 6); remolino(N, 17, 12)
+        N.r(-2, 4, 2, 1, ESP)
+    elif cuadro == 3:                 # escupe: la niebla sale disparada hacia delante
+        N.r(-3, 8, 4, 1, ESP); N.r(-4, 9, 3, 1, ESP_O)
+        particula(N, -6, 6); particula(N, -6, 11); N.p(-5, 9, ESP_BRILLO)
+        remolino(N, 17, 12, 0)
+    elif cuadro == 4:                 # liberándose: la niebla se desprende hacia arriba
+        remolino(N, 2, -3); remolino(N, 10, -2); remolino(N, 15, 9); remolino(N, 20, 10)
+        particula(N, 7, -4); particula(N, 14, 4); particula(N, 22, 6)
+    else:                             # liberada: un par de destellos dorados
+        C.p(13, 3, PAL['oro2']); C.p(13, 1, PAL['oro']); C.p(12, 2, PAL['oro']); C.p(14, 2, PAL['oro'])
+    return fundir(C, N)
+
+
+def escupitajo():
+    """Proyectil (archivo aparte, 10x8 -> 20x16): bola de escarcha con núcleo blanco y estela."""
+    L = Lienzo(10, 8)
+    L.r(1, 2, 4, 4, HIELO); L.r(2, 1, 2, 6, HIELO); L.r(0, 3, 6, 2, HIELO)
+    L.r(1, 3, 2, 2, '#ffffff')
+    L.r(4, 4, 1, 1, HIELO_O)
+    L.r(7, 3, 2, 1, HIELO); L.p(8, 5, HIELO_O)
+    return contorno(L.im)
+
+
+# ===========================================================================
+# ATOQ DE NIEBLA — cuadro de 32x24 (64x48 en el juego), suelo en la fila 23
+# 0-1 patrulla · 2 alerta · 3-4 carga · 5 cansado · 6 liberándose · 7 liberado
+# ===========================================================================
+AT_W, AT_H, AT_MX, AT_MY = 30, 20, 2, 4
+#            cuerpo     sombra     patas/orejas  panza      cola       punta de cola
+AT_FRIO = ('#8796cf', '#5e6aa3', '#434a85', '#c3cdf2', '#7280bd', ESP)
+AT_CALIDO = ('#de8a4c', '#a85b2c', '#4a2f24', PAL['lana'], '#cf7a3f', '#ffffff')
+ROJO = '#ff4d5e'
+
+
+def atoq(cuadro):
+    C = Capa(AT_W, AT_H, AT_MX, AT_MY)
+    N = Capa(AT_W, AT_H, AT_MX, AT_MY)
+    libre = cuadro == 7
+    c, s, pt, pz, cola, punta = AT_CALIDO if libre else AT_FRIO
+    SUELO = 19
+
+    # Postura: (desplazamiento de cabeza x, y) e inclinación del cuerpo
+    cab = {0: (0, 0), 1: (0, 0), 2: (0, -1), 3: (-2, 3), 4: (-1, 2), 5: (0, 5), 6: (0, -1), 7: (0, -2)}[cuadro]
+    hx, hy = cab
+    cuerpo_y = {3: 12, 4: 11, 5: 14}.get(cuadro, 10)    # fila superior del lomo
+
+    # --- Patas (la cercana en tono de patas, la lejana en sombra y separada 1 px)
+    if cuadro in (0, 1, 2, 6, 7):
+        paso = 1 if cuadro == 1 else 0
+        for x, lejana in ((8, False), (11, True), (16, False), (19, True)):
+            dx = (1 if not lejana else -1) * paso
+            col = s if lejana else pt
+            C.r(x + dx, cuerpo_y + 4, 2, SUELO - cuerpo_y - 4, col)
+            C.r(x + dx, SUELO, 2, 1, PAL['noche'] if not libre else '#2b1b17')
+    elif cuadro == 3:                 # galope estirado: patas en diagonal, bien separadas
+        C.r(5, 16, 2, 2, pt); C.r(3, 18, 3, 1, pt); C.r(2, SUELO, 3, 1, PAL['noche'])   # delantera
+        C.r(9, 16, 2, 2, s); C.r(7, 18, 2, 2, s)
+        C.r(19, 16, 2, 2, pt); C.r(21, 18, 2, 1, pt); C.r(22, SUELO, 3, 1, PAL['noche'])  # trasera
+        C.r(16, 16, 2, 2, s); C.r(17, 18, 2, 2, s)
+    elif cuadro == 4:                 # galope recogido: patas juntas bajo el cuerpo
+        C.r(10, 15, 2, 4, pt); C.r(9, SUELO, 3, 1, PAL['noche'])
+        C.r(13, 15, 2, 3, s); C.r(13, 18, 2, 2, s)
+        C.r(17, 15, 2, 4, pt); C.r(17, SUELO, 3, 1, PAL['noche'])
+    else:                             # cansado: echado, patas delanteras estiradas
+        C.r(3, 18, 6, 1, pt); C.r(2, SUELO, 6, 1, PAL['noche'])
+        C.r(16, 18, 4, 2, s)
+
+    # --- Cuerpo (inclinado hacia delante durante la carga)
+    y0 = cuerpo_y
+    if cuadro == 3:
+        C.r(8, y0 + 1, 12, 3, c); C.r(9, y0, 9, 1, c); C.r(18, y0 - 1, 3, 3, c)
+        C.r(9, y0 + 4, 9, 1, s)
+    elif cuadro == 4:
+        C.r(8, y0 + 1, 11, 3, c); C.r(9, y0, 9, 1, c); C.r(17, y0 - 1, 3, 2, c)
+        C.r(9, y0 + 4, 9, 1, s)
+    else:
+        C.r(9, y0, 10, 1, c)
+        C.r(8, y0 + 1, 12, 3, c)
+        C.r(9, y0 + 4, 10, 1, pz)     # panza clara
+
+    # --- Cola tupida con punta contrastante
+    if cuadro == 2:                   # alerta: erizada
+        for i, x in enumerate(range(19, 27)):
+            alto = 4 + (i % 2) * 2
+            C.r(x, y0 - alto + 2, 1, alto + 1, cola)
+        C.r(26, y0 - 4, 2, 4, punta)
+    elif cuadro in (3, 4):            # carga: recta hacia atrás
+        C.r(20, y0 - 1, 6, 3, cola); C.r(21, y0 - 2, 4, 1, cola); C.r(21, y0 + 2, 4, 1, s)
+        C.r(26, y0 - 1, 2, 3, punta)
+    elif cuadro == 5:                 # cansado: caída en el suelo
+        C.r(19, 17, 7, 2, cola); C.r(20, 16, 4, 1, cola); C.r(26, 17, 2, 2, punta)
+    else:                             # patrulla / liberado: alta y esponjosa
+        sube = 2 if libre else 0
+        C.r(19, y0 - 1 - sube, 2, 3, cola)
+        C.r(21, y0 - 4 - sube, 4, 6, cola)
+        C.r(20, y0 - 3 - sube, 6, 4, cola)
+        C.r(22, y0 + 1 - sube, 3, 1, s)
+        C.r(25, y0 - 5 - sube, 2, 3, punta); C.p(26, y0 - 2 - sube, punta)
+
+    # --- Cabeza: cráneo, hocico afilado, mejilla clara
+    X, Y = hx, hy
+    C.r(5 + X, 6 + Y, 5, 1, c)
+    C.r(4 + X, 7 + Y, 6, 1, c)
+    C.r(2 + X, 8 + Y, 8, 1, c)
+    C.r(0 + X, 9 + Y, 9, 1, pz)                       # hocico largo y fino, blanco abajo
+    C.r(3 + X, 10 + Y, 5, 1, pz)
+    C.p(0 + X, 8 + Y, PAL['noche']); C.p(-1 + X, 9 + Y, PAL['noche'])   # nariz en la punta
+    C.r(1 + X, 8 + Y, 1, 1, c)
+    # cuello
+    C.r(7 + X // 2, 8 + Y, 4, max(1, y0 - 7 - Y), c)
+    # orejas triangulares (erguidas y más altas en alerta, caídas al cansarse)
+    alto = {2: 5, 5: 2}.get(cuadro, 4)
+    for ox in (5, 8):
+        for k in range(alto):
+            ancho = 2 if k < alto - 1 else 1
+            C.r(ox + X, 5 + Y - k, ancho, 1, pt)
+        C.p(ox + X, 5 + Y, s)                        # interior
+
+    # --- Ojos
+    ex, ey = 4 + X, 7 + Y
+    if cuadro in (0, 1):
+        C.r(ex, ey, 2, 1, ESP); C.p(ex, ey, ESP_BRILLO)
+    elif cuadro in (2, 3, 4):
+        C.r(ex, ey, 2, 1, ROJO); C.p(ex, ey - 1, PAL['noche']); C.p(ex + 1, ey - 1, PAL['noche'])
+    elif cuadro == 5:
+        C.r(ex, ey, 2, 1, PAL['noche'])
+        C.r(0 + X, 10 + Y, 2, 2, PAL['grana'])        # lengua (jadeo)
+    elif cuadro == 6:
+        C.r(ex, ey, 2, 1, '#ffffff')
+    else:                             # liberado: ojo feliz en arco y boca sonriente
+        C.p(ex, ey, PAL['noche']); C.p(ex + 1, ey - 1, PAL['noche']); C.p(ex + 2, ey, PAL['noche'])
+        C.p(2 + X, 10 + Y, PAL['noche'])
+
+    # --- Niebla espectral
+    if cuadro in (0, 1):
+        d = cuadro
+        remolino(N, 10 + d, 1 - d)
+        remolino(N, 14 - d, 6 + d, 0)
+        N.p(26, 3 + d, ESP_BRILLO)
+    elif cuadro == 2:                 # "!" espectral sobre la cabeza: pausa antes de cargar
+        N.r(12, -4, 2, 4, ESP); N.r(12, 1, 2, 2, ESP)
+        remolino(N, 16, 5, 0)
+    elif cuadro in (3, 4):            # estela detrás
+        k = cuadro - 3
+        N.r(28, 9 + k, 2, 1, ESP); N.r(26, 14 - k, 3, 1, ESP)
+        particula(N, 28 - k, 12)
+        remolino(N, 10, 4 + k, 0)
+    elif cuadro == 5:                 # niebla débil
+        remolino(N, -2, 4, 0); N.p(1, 3, ESP_O)
+    elif cuadro == 6:                 # se desprende hacia arriba
+        remolino(N, 3, -2); remolino(N, 12, -3); remolino(N, 20, -1)
+        particula(N, 9, -4); particula(N, 16, 3); particula(N, 27, -2)
+    else:                             # destellos dorados
+        C.p(13, 1, PAL['oro2']); C.p(13, 0, PAL['oro']); C.p(12, 1, PAL['oro']); C.p(14, 1, PAL['oro'])
+    return fundir(C, N)
+
+
+guardar(hoja([llama(i) for i in range(6)]), 'llama.png')  # 64x64 por cuadro
+guardar(escupitajo(), 'escupitajo.png')  # 20x16
+guardar(hoja([atoq(i) for i in range(8)]), 'atoq.png')  # 64x48 por cuadro
+
+
+# ---------------------------------------------------------------------------
 # Uku, Señor de la Niebla (jefe final) 48x48, 4 cuadros
 # 0-1 flotando, 2 ataque (ojos rojos), 3 aturdido
 # ---------------------------------------------------------------------------

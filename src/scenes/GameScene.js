@@ -88,6 +88,7 @@ export default class GameScene extends Phaser.Scene {
     EventBus.on(EVENTOS.JEFE_DERROTADO, alDerrotarJefe);
     this.game.events.on(Phaser.Core.Events.BLUR, alPerderFoco);
     this.events.on('esquirla:rota', (x, y) => this.efectos.chispas(x, y, 0x9fe3ff, 6));
+    this.events.on('escupitajo:roto', (x, y) => this.efectos.chispas(x, y, 0x9fe3ff, 6));
     this.events.on('jefe:impacto', (x, y) => this.efectos.chispas(x, y, 0xc9d6e3, 18));
     this.events.once('shutdown', () => {
       EventBus.off(EVENTOS.PAUSA_SOLICITADA, alPedirPausa);
@@ -115,7 +116,11 @@ export default class GameScene extends Phaser.Scene {
     const x = this.nivel.activadorArenaX;
     this.zonaArena = this.add.zone(x + TILE / 2, suelo / 2, TILE, suelo);
     this.physics.add.existing(this.zonaArena, true);
-    this.colisiones.registrarJefe(this.jefe, this.esquirlas, this.rayos, this.zonaArena);
+    // Pared invisible en la entrada de la arena que solo frena a los enemigos:
+    // así no entran a la pelea patrullando o embistiendo antes que Kusi
+    this.barreraArena = this.add.zone(arena.desde * TILE - 4, suelo / 2, 8, suelo);
+    this.physics.add.existing(this.barreraArena, true);
+    this.colisiones.registrarJefe(this.jefe, this.esquirlas, this.rayos, this.zonaArena, this.barreraArena);
   }
 
   update(time, delta) {

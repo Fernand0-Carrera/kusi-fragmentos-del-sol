@@ -36,6 +36,11 @@ export default class CollisionSystem {
     // --- Peligros
     physics.add.overlap(j, n.enemigos, (_j, enemigo) => this.contactoEnemigo(enemigo));
     physics.add.overlap(j, n.puas, (_j, puas) => this.scene.danarJugador(puas.x));
+    // Escupitajos de la llama: se rompen contra el mapa y dañan a Kusi
+    physics.add.collider(n.escupitajos, n.capa, (escupitajo) => escupitajo.romper());
+    physics.add.overlap(j, n.escupitajos, (_j, escupitajo) => {
+      if (this.scene.danarJugador(escupitajo.x)) escupitajo.romper();
+    });
 
     // --- Triggers (zonas que disparan eventos)
     physics.add.overlap(j, n.puyas, (_j, puya) => this.rebotarEnPuya(puya));
@@ -44,10 +49,11 @@ export default class CollisionSystem {
   }
 
   /** Interacciones del jefe y sus proyectiles (solo en el nivel 3). */
-  registrarJefe(jefe, esquirlas, rayos, zonaArena) {
+  registrarJefe(jefe, esquirlas, rayos, zonaArena, barreraArena) {
     const { physics } = this.scene;
     const j = this.jugador;
     physics.add.collider(jefe, this.nivel.capa);
+    physics.add.collider(this.nivel.enemigos, barreraArena);
     physics.add.collider(esquirlas, this.nivel.capa, (esquirla) => esquirla.romper());
     physics.add.overlap(j, esquirlas, (_j, esquirla) => {
       if (this.scene.danarJugador(esquirla.x)) esquirla.romper();
