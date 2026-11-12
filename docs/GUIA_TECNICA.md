@@ -38,7 +38,7 @@ Cada carpeta tiene una responsabilidad: `scenes` decide el flujo, `objects` el c
 | `BootScene` | Carga solo la fuente pixelada para poder mostrar texto en la pantalla de carga. |
 | `PreloadScene` | Recorre `assetManifest.js`, muestra la barra de progreso, registra errores de carga y crea las animaciones. |
 | `MenuScene` | Nueva partida, Continuar (si hay partida guardada), Elegir nivel, Cómo jugar y Sonido. Muestra récord y nivel alcanzado. |
-| `LevelSelectScene` | Selector de niveles: una tarjeta por nivel con vista previa del fondo; solo se eligen los niveles ya alcanzados (`nivelAlcanzado` en `StorageManager`). |
+| `LevelSelectScene` | Selector de niveles: una tarjeta por nivel con vista previa del fondo y su mejor resultado (`resultadoNivel` en `StorageManager`); solo se eligen los niveles ya alcanzados (`nivelAlcanzado`). |
 | `HelpScene` | "Cómo jugar" en 4 páginas (controles, objetos, enemigos y jefe) con los sprites y sus animaciones reales. Permite repetir el tutorial. |
 | `StoryScene` | Paneles de historia con retrato animado y efecto máquina de escribir. Recibe a dónde ir al terminar. |
 | `GameScene` | Construye el nivel, crea a Kusi, conecta colisiones, cámara y música, y aplica victoria y derrota. |
@@ -131,8 +131,12 @@ Se guarda un único JSON en `localStorage` con la clave `kusi.fragmentos-del-sol
 { "record": 4215, "nivelAlcanzado": 3,
   "audio": { "silencio": false, "volumenMusica": 0.5, "volumenEfectos": 0.8 },
   "partida": { "nivel": 2, "puntos": 870, "vidas": 3 },
-  "graficos": "normal" }
+  "graficos": "normal",
+  "tutorialVisto": true,
+  "niveles": { "1": { "puntos": 1840, "fragmentos": 31, "total": 31, "segundos": 102 } } }
 ```
+
+`niveles` guarda el mejor resultado de cada nivel completado: al cruzar la Puerta del Sol, `GameScene` llama a `registrarResultadoNivel`, que se queda con el máximo de puntos y fragmentos y el mínimo de tiempo por separado. El selector de niveles lo muestra en cada tarjeta.
 
 Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacenamiento puede estar bloqueado (modo privado). En ese caso el juego sigue funcionando con los datos en memoria.
 
@@ -177,7 +181,7 @@ Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacena
 4. **¿Por qué una máquina de estados?** Ordena el comportamiento: cada estado tiene su animación y sus transiciones, y se evitan combinaciones inválidas (por ejemplo, saltar estando muerto).
 5. **¿Qué es el object pooling?** Reutilizar objetos desactivados en vez de crear y destruir. Reduce el trabajo del recolector de basura y evita tirones.
 6. **¿Cómo se garantiza que el HUD no deje oyentes colgados?** Cada suscripción al EventBus se elimina en el evento `shutdown` de la escena.
-7. **¿Qué se guarda en localStorage y por qué con `try/catch`?** Récord, nivel alcanzado, partida, audio y gráficos. El `try/catch` evita que el juego falle si el navegador bloquea el almacenamiento.
+7. **¿Qué se guarda en localStorage y por qué con `try/catch`?** Récord, nivel alcanzado, mejor resultado por nivel, partida, audio, gráficos y si ya se vio el tutorial. El `try/catch` evita que el juego falle si el navegador bloquea el almacenamiento.
 8. **¿Cómo detecta el Neblino el borde de una plataforma?** Consulta la baldosa que está delante y debajo de sus pies; si no hay una baldosa con colisión, da la vuelta.
 9. **¿Cómo se mantiene el rendimiento?** Pooling, texturas precalculadas, fondos recortados, partículas reutilizadas y calidad adaptativa por debajo de 45 FPS.
 10. **¿Qué pasa si el audio no puede reproducirse al inicio?** El AudioManager guarda la música pendiente y la inicia cuando el navegador desbloquea el audio con la primera interacción.

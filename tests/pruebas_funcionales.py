@@ -134,6 +134,8 @@ with sync_playwright() as p:
     esperar(pg, "T.gs().completando", 3000)
     datos = pg.evaluate("JSON.parse(localStorage.getItem('kusi.fragmentos-del-sol.v1'))")
     ok('meta_guarda_progreso', datos['nivelAlcanzado'] == 2 and datos['partida']['nivel'] == 2 and datos['record'] > 0, datos)
+    res1 = datos.get('niveles', {}).get('1')
+    ok('meta_guarda_resultado_del_nivel', res1 is not None and res1['puntos'] > 0 and res1['total'] == 31 and res1['segundos'] > 0, res1)
     esperar(pg, "T.activa('StoryScene')", 8000)
     pg.wait_for_timeout(300)
     pg.keyboard.press('Escape')
@@ -220,6 +222,57 @@ with sync_playwright() as p:
     pg.keyboard.press('Enter')
     esperar(pg, "T.activa('GameScene') && T.gs().numeroNivel===2", 8000)
     ok('continuar_desde_menu', pg.evaluate("T.estado().puntos") == 300)
+
+    # --- Selector de niveles, tutorial y "Cómo jugar" (menús y ayuda)
+    pg.evaluate("T.d().almacen.reiniciarTodo(); T.g().scene.getScenes(true)[0].scene.start('LevelSelectScene')")
+    esperar(pg, "T.activa('LevelSelectScene')"); pg.wait_for_timeout(500)
+    pg.keyboard.press('ArrowRight'); pg.wait_for_timeout(150)
+    pg.keyboard.press('Enter'); pg.wait_for_timeout(500)
+    ok('selector_no_deja_entrar_a_niveles_bloqueados', pg.evaluate("T.activa('LevelSelectScene') && !T.activa('GameScene')"))
+
+    pg.evaluate("""(()=>{const a=T.d().almacen; a.registrarNivel(2);
+      a.registrarResultadoNivel(1, {puntos: 1500, fragmentos: 31, total: 31, segundos: 95});
+      T.g().scene.getScene('LevelSelectScene').scene.restart();})()""")
+    pg.wait_for_timeout(500)
+    textos = pg.evaluate("T.g().scene.getScene('LevelSelectScene').tarjetas.map(t => t.list.filter(o => o.type === 'BitmapText').map(o => o.text).join(' | '))")
+    ok('selector_muestra_mejor_resultado', 'Mejor: 1500 pts' in textos[0] and '31/31' in textos[0] and 'sin completar' in textos[1] and '???' in textos[2], textos)
+
+    pg.keyboard.press('Enter')   # empieza enfocado el último nivel desbloqueado (2)
+    esperar(pg, "T.activa('GameScene') && T.gs().numeroNivel===2", 8000)
+    pg.wait_for_timeout(300)
+    e = pg.evaluate("T.estado()")
+    ok('selector_empieza_el_nivel_elegido', e['vidas'] == 3 and e['puntos'] == 0, e)
+
+    # Tutorial: sale la primera vez en el nivel 1, se completa con la acción y luego no se repite
+    pg.evaluate("T.d().almacen.marcarTutorialVisto(false); T.d().sesion.nueva(1); T.gs().scene.start('GameScene', {nivel: 1})")
+    esperar(pg, "T.activa('GameScene') && T.gs().numeroNivel===1 && T.gs().jugador", 8000)
+    pg.wait_for_timeout(500)
+    ok('tutorial_sale_la_primera_vez', pg.evaluate("!!T.gs().tutorial && T.gs().tutorial.actual && T.gs().tutorial.actual.columna === 5"))
+    pg.keyboard.down('ArrowRight'); pg.wait_for_timeout(500); pg.keyboard.up('ArrowRight'); pg.wait_for_timeout(200)
+    ok('tutorial_cartel_se_completa_con_la_accion', pg.evaluate("T.gs().tutorial.carteles[0].visto"))
+    pg.evaluate("T.gs().tutorial.carteles.forEach(c => { c.visto = true; })")
+    esperar(pg, "T.gs().tutorial.terminado", 3000)
+    pg.evaluate("T.d().sesion.nueva(1); T.gs().scene.start('GameScene', {nivel: 1})")
+    esperar(pg, "T.activa('GameScene') && T.gs().jugador", 8000)
+    pg.wait_for_timeout(300)
+    ok('tutorial_no_se_repite', pg.evaluate("T.d().almacen.tutorialVisto && T.gs().tutorial === null"))
+
+    # "Cómo jugar" desde la pausa: la partida queda congelada y se vuelve a ella
+    x0 = pg.evaluate("T.estado().x")
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
+    for tecla in ['ArrowDown', 'ArrowDown', 'Enter']:
+        pg.keyboard.press(tecla); pg.wait_for_timeout(200)
+    ok('como_jugar_desde_la_pausa', pg.evaluate("T.activa('HelpScene') && T.g().scene.isPaused('GameScene') && !T.g().scene.isVisible('PauseScene')"))
+    for _ in range(3):
+        pg.keyboard.press('ArrowRight'); pg.wait_for_timeout(150)
+    pg.keyboard.press('1'); pg.wait_for_timeout(150)
+    paginas = pg.evaluate("T.g().scene.getScene('HelpScene').indice")
+    pg.keyboard.press('ArrowLeft'); pg.wait_for_timeout(150)
+    ok('como_jugar_cambia_de_pagina', paginas == 0 and pg.evaluate("T.g().scene.getScene('HelpScene').indice") == 3)
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
+    en_pausa = pg.evaluate("T.activa('PauseScene') && T.g().scene.isVisible('PauseScene') && !T.activa('HelpScene') && T.g().scene.isPaused('GameScene')")
+    pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
+    ok('ayuda_vuelve_a_la_pausa_y_la_partida_sigue', en_pausa and not pg.evaluate("T.g().scene.isPaused('GameScene')") and pg.evaluate("T.estado().x") == x0)
 
     ok('sin_errores_en_consola', len(errores) == 0, errores[:5])
     b.close()

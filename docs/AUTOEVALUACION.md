@@ -8,7 +8,7 @@
 
 | Criterio | Peso | Autoevaluación | Justificación |
 | --- | --- | --- | --- |
-| Funcionalidad principal | 20 % | __ / 20 | El juego se juega de inicio a fin: menú, selector de niveles, historia, 3 niveles, jefe, victoria, Game Over y reinicio. 22 pruebas automatizadas aprobadas. |
+| Funcionalidad principal | 20 % | __ / 20 | El juego se juega de inicio a fin: menú, selector de niveles, historia, 3 niveles, jefe, victoria, Game Over y reinicio. 32 pruebas automatizadas aprobadas. |
 | Mecánicas de juego | 15 % | __ / 15 | Saltos con tiempo coyote, buffer y altura variable; dash en el suelo y en el aire; plataformas de un solo sentido; resortes; losas móviles; suelo de hielo; checkpoints; enemigos con IA propia (Llama que dispara, Atoq que embiste); jefe con 3 fases y rayos con aviso. |
 | Física y colisiones | 10 % | __ / 10 | Arcade Physics con gravedad, colliders con tilemap, overlaps, triggers (apachetas, meta, arena) y rebotes. |
 | Arquitectura y modularidad | 15 % | __ / 15 | Carpetas `scenes`, `objects`, `ui`, `managers`, `physics`, `audio` y `assets`; máquina de estados reutilizable; EventBus; niveles definidos como datos. |

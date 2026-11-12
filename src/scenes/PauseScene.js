@@ -41,8 +41,8 @@ export default class PauseScene extends Phaser.Scene {
     this.add.bitmapText(ANCHO / 2, ALTO - 60, FUENTE, 'Mover: flechas o A/D    Saltar: Espacio    Dash: Shift o X', 24)
       .setOrigin(0.5).setTint(0x8a84b0);
 
-    // Esc o P continúan la partida. Se ignoran justo después de despertar (al volver de
-    // "Cómo jugar" con Esc), para que esa misma pulsación no cierre también la pausa.
+    // Esc o P continúan la partida. Por precaución se ignoran unos instantes al despertar
+    // (al volver de "Cómo jugar" con Esc), para que una pulsación repetida no cierre la pausa.
     this.ignorarTeclasHasta = 0;
     const alContinuar = () => { if (this.time.now >= this.ignorarTeclasHasta) this.continuar(); };
     this.input.keyboard.on('keydown-ESC', alContinuar);

@@ -106,7 +106,7 @@ La explicación detallada de la arquitectura está en [docs/GUIA_TECNICA.md](doc
 | Enemigos, victoria y derrota | Neblino, murciélago, Llama, Atoq, púas, jefe Uku de 3 fases con rayos; Puerta del Sol; sin vidas = Game Over |
 | Arcade Physics, overlaps, triggers, gravedad y rebotes | Gravedad global, tilemap con colisiones de un solo sentido, overlaps de objetos, triggers (apachetas, arena del jefe, meta), resortes y pisotones |
 | Audio | 3 músicas en bucle, 2 jingles y 14 efectos; botón y tecla M para silenciar |
-| Persistencia (localStorage) | Récord, nivel alcanzado (desbloquea niveles en "Elegir nivel"), partida para "Continuar", silencio, modo de gráficos y tutorial ya visto |
+| Persistencia (localStorage) | Récord, nivel alcanzado (desbloquea niveles en "Elegir nivel"), mejor resultado de cada nivel (puntos, fragmentos y tiempo), partida para "Continuar", silencio, modo de gráficos y tutorial ya visto |
 | Responsive y táctil | `Scale.FIT` 960×540, controles táctiles multitáctiles, pantalla completa |
 | Rendimiento | Object pooling, minimapa precalculado, capas de fondo recortadas, calidad adaptativa por debajo de 45 FPS |
 | Accesibilidad | Paleta de alto contraste con contorno en el texto, "Cómo jugar" en 4 páginas con animaciones, tutorial interactivo en el Nivel 1, foco visible con teclado, mute |
@@ -138,7 +138,7 @@ npm run assets
 
 ## Pruebas automatizadas
 
-`tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 22 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria y "Continuar". Requiere `pip install playwright` y el servidor de desarrollo en marcha.
+`tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 32 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria, "Continuar", el selector de niveles (bloqueo y mejores resultados), el tutorial del Nivel 1 y "Cómo jugar" desde la pausa. Requiere `pip install playwright` y el servidor de desarrollo en marcha.
 
 ## Créditos
 

@@ -259,9 +259,16 @@ export default class GameScene extends Phaser.Scene {
       fragmentos: sesion.fragmentos, total: sesion.fragmentosTotales, segundos, bonoTiempo, bonoVidas, puntos: sesion.puntos
     });
 
-    // Persistencia: récord, nivel alcanzado y partida para "Continuar"
+    // Persistencia: récord, mejor resultado del nivel (para el selector),
+    // nivel alcanzado y partida para "Continuar"
     const siguiente = this.numeroNivel + 1;
     almacen.actualizarRecord(sesion.puntos);
+    almacen.registrarResultadoNivel(this.numeroNivel, {
+      puntos: sesion.puntos - sesion.puntosInicioNivel, // solo lo ganado en este nivel, con bonos
+      fragmentos: sesion.fragmentos,
+      total: sesion.fragmentosTotales,
+      segundos
+    });
     if (siguiente <= TOTAL_NIVELES) {
       almacen.registrarNivel(siguiente);
       almacen.guardarPartida({ nivel: siguiente, puntos: sesion.puntos, vidas: sesion.vidas });
