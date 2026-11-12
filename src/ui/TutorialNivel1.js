@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { CAPAS, COLOR, FUENTE, TILE } from '../config/constants.js';
 import { SFX } from '../audio/audioKeys.js';
 import { audio } from '../managers/AudioManager.js';
@@ -7,12 +8,15 @@ import { crearTextoConTeclas } from './TextoConTeclas.js';
 
 const SUELO = 14 * TILE;          // fila del suelo del Nivel 1 (en píxeles)
 const ALTO_CARTEL = SUELO - 190;  // altura del centro de los carteles: encima de Kusi y de los fragmentos bajos
+const LECTURA_MINIMA = 2600;      // ms que un cartel se queda aunque Kusi lo pase de largo (jugadores rápidos)
+const MARGEN_PANTALLA = 12;       // px libres entre el cartel y el borde de la pantalla
 
 /**
  * Carteles del tutorial. Las posiciones están en columnas de baldosas del
  * Nivel 1 (ver data/levels.js) y se colocan desde aquí, sin tocar el mapa.
  *   columna:     dónde se clava el poste del cartel
- *   desde/hasta: tramo en el que se muestra (si Kusi pasa de "hasta", se da por visto)
+ *   desde/hasta: el cartel se activa al llegar a "desde"; si Kusi pasa de "hasta" sin hacerlo,
+ *                se cierra solo después de LECTURA_MINIMA
  *   teclado / tactil: líneas de texto; {Tecla} se dibuja como una tecla
  *   hecho:       condición que completa el cartel (lo que el jugador debe hacer)
  */
@@ -65,6 +69,9 @@ const CARTELES = [
 /**
  * Tutorial interactivo del Nivel 1. Cada cartel aparece cuando Kusi se acerca
  * y se completa cuando el jugador hace lo que pide (moverse, saltar, dash...).
+ * - Los carteles salen de uno en uno y en orden, para que nunca se encimen.
+ * - Si el jugador va rápido, el cartel lo sigue pegado al borde de la pantalla y
+ *   se queda al menos LECTURA_MINIMA; los que ya hizo por el camino se saltan.
  * No pausa el juego. Al terminar se guarda en StorageManager y no vuelve a salir.
  */
 export default class TutorialNivel1 {
@@ -86,6 +93,18 @@ export default class TutorialNivel1 {
       x: def.columna * TILE + TILE / 2,
       visto: false
     }));
+
+    // La cámara se mueve después de GameScene.update: se recolocan los paneles justo
+    // cuando ya se movió, así nunca quedan un cuadro fuera de la pantalla (ni al reaparecer)
+    const camara = scene.cameras.main;
+    const alSeguir = () => this.recolocarPaneles();
+    camara.on(Phaser.Cameras.Scene2D.Events.FOLLOW_UPDATE, alSeguir);
+    scene.events.once('shutdown', () => camara.off(Phaser.Cameras.Scene2D.Events.FOLLOW_UPDATE, alSeguir));
+  }
+
+  /** Los paneles visibles (también el que celebra "¡Bien!") siguen a la cámara. */
+  recolocarPaneles() {
+    this.carteles.forEach((c) => { if (c.panel && !c.panel.cerrando) this.posicionarPanel(c, c.panel); });
   }
 
   /** Poste de madera clavado en el suelo con un signo "?". */
@@ -109,13 +128,13 @@ export default class TutorialNivel1 {
   crearPanel(cartel) {
     const lineas = cartel.lineas.map((l) => crearTextoConTeclas(this.scene, l, { tamano: 22 }));
     const ancho = Math.max(...lineas.map((l) => l.ancho)) + 36;
-    // El panel no se sale por el borde izquierdo del mundo; la punta sigue señalando al poste
-    const x = Math.max(cartel.x, ancho / 2 + 10);
-    const punta = cartel.x - x;
-    const panel = this.scene.add.container(x, ALTO_CARTEL).setDepth(CAPAS.frente);
+    const panel = this.scene.add.container(cartel.x, ALTO_CARTEL).setDepth(CAPAS.frente);
     const alto = lineas.length * 32 + 22;
     const fondo = this.scene.add.graphics();
-    panel.add(fondo);
+    // La punta va aparte: se mueve para seguir señalando al poste y se oculta si el poste quedó fuera de pantalla
+    const punta = this.scene.add.graphics();
+    punta.fillStyle(COLOR.panel, 0.92).fillTriangle(-10, alto / 2, 10, alto / 2, 0, alto / 2 + 12);
+    panel.add([fondo, punta]);
     lineas.forEach((l, i) => {
       l.x = -l.ancho / 2;
       l.y = -alto / 2 + 27 + i * 32;
@@ -125,41 +144,67 @@ export default class TutorialNivel1 {
       fondo.clear();
       fondo.fillStyle(COLOR.panel, 0.92);
       fondo.fillRoundedRect(-ancho / 2, -alto / 2, ancho, alto, 8);
-      fondo.fillTriangle(punta - 10, alto / 2, punta + 10, alto / 2, punta, alto / 2 + 12);
       fondo.lineStyle(3, borde, 1);
       fondo.strokeRoundedRect(-ancho / 2, -alto / 2, ancho, alto, 8);
     };
     panel.dibujarFondo(COLOR.oro);
     panel.alto = alto;
+    panel.ancho = ancho;
+    panel.punta = punta;
     this.panelesEnPantalla += 1;
     panel.setScale(0);
     this.scene.tweens.add({ targets: panel, scale: 1, duration: 260, ease: 'Back.out' });
     panel.flotar = this.scene.tweens.add({ targets: panel, y: ALTO_CARTEL - 5, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    this.posicionarPanel(cartel, panel);
     return panel;
+  }
+
+  /**
+   * Coloca el panel sobre su poste, pero sin salirse de la pantalla: si la cámara
+   * ya avanzó (o aún no llega), el panel queda pegado al borde y la punta se oculta.
+   */
+  posicionarPanel(cartel, panel) {
+    const camara = this.scene.cameras.main;
+    const izquierda = camara.scrollX + panel.ancho / 2 + MARGEN_PANTALLA;
+    const derecha = camara.scrollX + camara.width - panel.ancho / 2 - MARGEN_PANTALLA;
+    panel.x = Math.min(Math.max(cartel.x, izquierda), derecha);
+    const desvio = cartel.x - panel.x;
+    panel.punta.x = desvio;
+    panel.punta.setVisible(Math.abs(desvio) < panel.ancho / 2 - 14);
   }
 
   /** Llamar cada fotograma desde GameScene.update. */
   actualizar() {
     if (this.terminado) return;
     const columna = Math.floor(this.jugador.x / TILE);
+    const ahora = this.scene.time.now;
 
-    // Si Kusi ya pasó de largo un cartel, se da por visto
-    this.carteles.forEach((c) => { if (!c.visto && columna > c.hasta) this.cerrar(c, false); });
+    // Lo que el jugador hace en el tramo de un cartel que espera su turno cuenta:
+    // si salta o hace dash mientras corre, ese cartel ya no hace falta mostrarlo
+    this.carteles.forEach((c) => {
+      if (!c.visto && c !== this.actual && columna >= c.desde && c.hecho(this)) c.yaHecho = true;
+    });
 
-    // El cartel que se muestra se completa cuando el jugador hace lo que pide
-    if (this.actual && this.actual.hecho(this)) this.cerrar(this.actual, true);
+    if (this.actual) {
+      const c = this.actual;
+      if (c.hecho(this)) {
+        this.cerrar(c, true);
+      } else if (columna > c.hasta && ahora - c.mostradoDesde > LECTURA_MINIMA) {
+        // Lo pasó de largo sin hacerlo, pero ya tuvo tiempo de leerlo
+        this.cerrar(c, false);
+      }
+    }
+    this.recolocarPaneles();
 
-    const siguiente = this.carteles.find((c) => !c.visto && columna >= c.desde && columna <= c.hasta) ?? null;
-    if (siguiente !== this.actual) {
-      // Kusi salió del tramo del cartel actual sin completarlo (por ejemplo, retrocedió): se guarda
-      if (this.actual) this.ocultarPanel(this.actual);
-      this.actual = null;
-      if (siguiente && siguiente.hecho(this)) {
-        // Lo que pide este cartel ya lo hizo antes: no hace falta mostrarlo
-        siguiente.visto = true;
-      } else if (siguiente && this.panelesEnPantalla === 0) {
-        // Solo aparece cuando el cartel anterior terminó de irse, para que nunca se encimen
+    // Siguiente cartel: el primero pendiente al que Kusi ya llegó, en orden.
+    // Solo aparece cuando el anterior terminó de irse, para que nunca se encimen.
+    if (!this.actual && this.panelesEnPantalla === 0) {
+      const siguiente = this.carteles.find((c) => !c.visto && columna >= c.desde);
+      if (siguiente && (siguiente.yaHecho || siguiente.hecho(this))) {
+        siguiente.visto = true; // lo hizo por su cuenta: se salta sin mostrarlo
+      } else if (siguiente) {
         this.actual = siguiente;
+        siguiente.mostradoDesde = ahora;
         siguiente.poste = this.crearPoste(siguiente.x);
         siguiente.panel = this.crearPanel(siguiente);
       }
@@ -196,6 +241,7 @@ export default class TutorialNivel1 {
     panel.flotar?.stop();
     this.scene.tweens.add({
       targets: panel, scale: 0, alpha: 0, duration: 200, ease: 'Back.in',
+      onUpdate: () => this.posicionarPanel(cartel, panel), // sigue a la cámara mientras se va
       onComplete: () => {
         panel.destroy();
         this.panelesEnPantalla -= 1;
