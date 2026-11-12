@@ -15,11 +15,19 @@ const COLORES_FASE = [0x9fe3ff, 0xffc857, 0xff6b62]; // mismos tintes que usa Uk
  * "Cómo jugar" en varias páginas: controles, objetos, enemigos y jefe.
  * Cada página muestra los sprites del juego con sus animaciones reales
  * (las mismas claves de objects/animations.js), en pequeñas escenas que se repiten.
- * Navegación: ← → o A / D cambian de página, 1-4 van directo, Esc vuelve al menú.
+ * Navegación: ← → o A / D cambian de página, 1-4 van directo, Esc vuelve.
+ * Se abre desde el menú principal o desde la pausa ({ desdePausa: true }); en ese
+ * caso "Volver" regresa a la pausa y la partida sigue donde estaba.
  */
 export default class HelpScene extends Phaser.Scene {
   constructor() {
     super(ESCENAS.AYUDA);
+  }
+
+  init(datos) {
+    // Phaser recuerda los datos del último arranque si no se pasan nuevos: por eso
+    // además se comprueba que de verdad haya una pausa dormida esperando
+    this.desdePausa = Boolean(datos?.desdePausa) && this.scene.isSleeping(ESCENAS.PAUSA);
   }
 
   create() {
@@ -37,6 +45,7 @@ export default class HelpScene extends Phaser.Scene {
     this.crearBotones();
     this.configurarTeclado();
     this.indice = -1;
+    this.saliendo = false; // Phaser reutiliza la instancia de la escena
     this.irAPagina(0);
   }
 
@@ -72,10 +81,11 @@ export default class HelpScene extends Phaser.Scene {
 
   crearBotones() {
     const y = ALTO - 34;
-    const anterior = new TextButton(this, 150, y, '< Anterior', () => this.cambiarPagina(-1), { ancho: 170, alto: 46 });
-    this.botonTutorial = new TextButton(this, 375, y, this.textoTutorial(), () => this.repetirTutorial(), { ancho: 240, alto: 46 });
-    const volver = new TextButton(this, 630, y, 'Volver al menú', () => this.scene.start(ESCENAS.MENU), { ancho: 230, alto: 46 });
-    const siguiente = new TextButton(this, 840, y, 'Siguiente >', () => this.cambiarPagina(1), { ancho: 170, alto: 46 });
+    // Anchos medidos para que quepa el texto más largo de cada botón ("Volver a la pausa")
+    const anterior = new TextButton(this, 127, y, '< Anterior', () => this.cambiarPagina(-1), { ancho: 166, alto: 46 });
+    this.botonTutorial = new TextButton(this, 342, y, this.textoTutorial(), () => this.repetirTutorial(), { ancho: 240, alto: 46 });
+    const volver = new TextButton(this, 607, y, this.desdePausa ? 'Volver a la pausa' : 'Volver al menú', () => this.volver(), { ancho: 266, alto: 46 });
+    const siguiente = new TextButton(this, 834, y, 'Siguiente >', () => this.cambiarPagina(1), { ancho: 164, alto: 46 });
     this.menu = new MenuList(this, [anterior, this.botonTutorial, volver, siguiente]);
     this.menu.enfocar(3);
   }
@@ -97,10 +107,22 @@ export default class HelpScene extends Phaser.Scene {
       if (c === K.LEFT || c === K.A) this.cambiarPagina(-1);
       else if (c === K.RIGHT || c === K.D) this.cambiarPagina(1);
       else if (c >= K.ONE && c <= K.FOUR) this.irAPagina(c - K.ONE);
-      else if (c === K.ESC) this.scene.start(ESCENAS.MENU);
+      else if (c === K.ESC) this.volver();
     };
     this.input.keyboard.on('keydown', this.alPresionar);
     this.events.once('shutdown', () => this.input.keyboard.off('keydown', this.alPresionar));
+  }
+
+  /** Vuelve a la pausa (si se abrió desde una partida) o al menú principal. */
+  volver() {
+    if (this.saliendo) return;
+    this.saliendo = true;
+    if (this.desdePausa) {
+      this.scene.wake(ESCENAS.PAUSA);
+      this.scene.stop();
+    } else {
+      this.scene.start(ESCENAS.MENU);
+    }
   }
 
   cambiarPagina(paso) {

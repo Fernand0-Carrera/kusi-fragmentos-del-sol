@@ -40,7 +40,7 @@ export default class MenuScene extends Phaser.Scene {
     y += paso;
     botones.push(new TextButton(this, ANCHO / 2, y, 'Elegir nivel', () => this.scene.start(ESCENAS.SELECTOR)));
     y += paso;
-    botones.push(new TextButton(this, ANCHO / 2, y, 'Cómo jugar', () => this.scene.start(ESCENAS.AYUDA)));
+    botones.push(new TextButton(this, ANCHO / 2, y, 'Cómo jugar', () => this.scene.start(ESCENAS.AYUDA, { desdePausa: false })));
     y += paso;
     this.botonSonido = new TextButton(this, ANCHO / 2, y, this.textoSonido(), () => {
       audio.alternarSilencio();

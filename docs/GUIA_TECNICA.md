@@ -43,7 +43,7 @@ Cada carpeta tiene una responsabilidad: `scenes` decide el flujo, `objects` el c
 | `StoryScene` | Paneles de historia con retrato animado y efecto máquina de escribir. Recibe a dónde ir al terminar. |
 | `GameScene` | Construye el nivel, crea a Kusi, conecta colisiones, cámara y música, y aplica victoria y derrota. |
 | `UIScene` | HUD que corre **en paralelo** encima de GameScene. |
-| `PauseScene` | Overlay de pausa; GameScene queda congelada con `scene.pause()`. |
+| `PauseScene` | Overlay de pausa; GameScene queda congelada con `scene.pause()`. "Cómo jugar" duerme la pausa (`scene.sleep()`) y abre HelpScene encima; al volver, la pausa se despierta y la partida sigue igual. |
 | `GameOverScene` | Resumen, récord y reintento del nivel. |
 | `VictoryScene` | Final de la partida, récord y opciones para volver a jugar. |
 

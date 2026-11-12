@@ -101,7 +101,7 @@ La explicación detallada de la arquitectura está en [docs/GUIA_TECNICA.md](doc
 | Requisito | Implementación |
 | --- | --- |
 | Escenas, loader, estados | 11 escenas; `PreloadScene` con barra de progreso; `GameStateManager` y `StateMachine` |
-| Menú, pausa, Game Over, reinicio | `MenuScene`, `PauseScene` (continuar, reiniciar, salir), `GameOverScene` (reintentar) |
+| Menú, pausa, Game Over, reinicio | `MenuScene`, `PauseScene` (continuar, reiniciar, cómo jugar, sonido, salir), `GameOverScene` (reintentar) |
 | Movimiento, colisiones, puntaje, HUD | `Player`, `CollisionSystem`, `GameSession`, `UIScene` |
 | Enemigos, victoria y derrota | Neblino, murciélago, Llama, Atoq, púas, jefe Uku de 3 fases con rayos; Puerta del Sol; sin vidas = Game Over |
 | Arcade Physics, overlaps, triggers, gravedad y rebotes | Gravedad global, tilemap con colisiones de un solo sentido, overlaps de objetos, triggers (apachetas, arena del jefe, meta), resortes y pisotones |
