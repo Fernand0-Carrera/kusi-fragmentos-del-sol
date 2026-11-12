@@ -63,6 +63,7 @@ Los controles táctiles aparecen solos en dispositivos táctiles y admiten vario
 - La **flor de puya** funciona como resorte.
 - Llega a la **Puerta del Sol** para terminar el nivel. Ganas un bono por tiempo y por vidas restantes.
 - **Uku** es invulnerable en el aire: esquiva sus esquirlas de hielo, espera a que se lance en picada y salta sobre él mientras está aturdido. Tiene 6 puntos de vida y a la mitad se vuelve más agresivo.
+- La primera vez, el **Nivel 1** muestra carteles de tutorial que se completan al hacer cada acción. Se pueden repetir desde **Cómo jugar**.
 - **Victoria:** derrotar a Uku y entrar en la Puerta del Sol. **Derrota:** quedarse sin vidas.
 
 ## Estructura del proyecto
@@ -86,7 +87,7 @@ kusi-fragmentos-del-sol/
 │   ├── objects/               # Player, Enemy, Neblino, Murcielago, Uku, IceShard, Collectible...
 │   ├── physics/               # LevelBuilder (tilemap) y CollisionSystem (colliders, overlaps, triggers)
 │   ├── managers/              # EventBus, StateMachine, GameState, Storage, Audio, Input, Session...
-│   └── ui/                    # TextButton, MenuList, HUD (Minimap, BossBar, TouchControls), paralaje
+│   └── ui/                    # TextButton, MenuList, HUD (Minimap, BossBar, TouchControls), paralaje, tutorial
 ├── tools/                     # scripts que generan imágenes y audio
 ├── tests/                     # pruebas funcionales automatizadas (Playwright)
 └── docs/                      # capturas, guía técnica, autoevaluación y guion del video

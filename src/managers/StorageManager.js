@@ -12,7 +12,8 @@ const PREDETERMINADO = {
   nivelAlcanzado: 1,
   audio: { silencio: false, volumenMusica: 0.5, volumenEfectos: 0.8 },
   partida: null, // { nivel, puntos, vidas } al comenzar el último nivel alcanzado
-  graficos: 'normal' // 'ligero' si el equipo no alcanzó 45 FPS
+  graficos: 'normal', // 'ligero' si el equipo no alcanzó 45 FPS
+  tutorialVisto: false // los carteles del Nivel 1 solo salen la primera vez
 };
 
 class StorageManager {
@@ -46,6 +47,7 @@ class StorageManager {
   get audio() { return this.datos.audio; }
   get partida() { return this.datos.partida; }
   get graficosLigeros() { return this.datos.graficos === 'ligero'; }
+  get tutorialVisto() { return this.datos.tutorialVisto; }
 
   /** Devuelve true si el puntaje supera el récord anterior. */
   actualizarRecord(puntos) {
@@ -77,6 +79,12 @@ class StorageManager {
 
   guardarGraficos(modo) {
     this.datos.graficos = modo;
+    this.guardar();
+  }
+
+  /** true: no se vuelve a mostrar el tutorial. false: se repite (botón en "Cómo jugar"). */
+  marcarTutorialVisto(visto = true) {
+    this.datos.tutorialVisto = visto;
     this.guardar();
   }
 

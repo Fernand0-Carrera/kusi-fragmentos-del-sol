@@ -39,7 +39,7 @@ Cada carpeta tiene una responsabilidad: `scenes` decide el flujo, `objects` el c
 | `PreloadScene` | Recorre `assetManifest.js`, muestra la barra de progreso, registra errores de carga y crea las animaciones. |
 | `MenuScene` | Nueva partida, Continuar (si hay partida guardada), Elegir nivel, Cómo jugar y Sonido. Muestra récord y nivel alcanzado. |
 | `LevelSelectScene` | Selector de niveles: una tarjeta por nivel con vista previa del fondo; solo se eligen los niveles ya alcanzados (`nivelAlcanzado` en `StorageManager`). |
-| `HelpScene` | Controles de teclado y táctiles, y significado de cada objeto. |
+| `HelpScene` | "Cómo jugar" en 4 páginas (controles, objetos, enemigos y jefe) con los sprites y sus animaciones reales. Permite repetir el tutorial. |
 | `StoryScene` | Paneles de historia con retrato animado y efecto máquina de escribir. Recibe a dónde ir al terminar. |
 | `GameScene` | Construye el nivel, crea a Kusi, conecta colisiones, cámara y música, y aplica victoria y derrota. |
 | `UIScene` | HUD que corre **en paralelo** encima de GameScene. |
@@ -145,6 +145,7 @@ Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacena
 | Object pooling de esquirlas (`group.get`, `maxSize: 16`) | `objects/IceShard.js`, `GameScene.prepararJefe` |
 | Un emisor por tipo de partícula reutilizado con `explode`, y un pool de siluetas para la estela del dash | `managers/EffectsManager.js` |
 | Minimapa dibujado una vez en una textura | `ui/Minimap.js` |
+| Tutorial del Nivel 1 solo la primera vez (`tutorialVisto` en `StorageManager`) | `ui/TutorialNivel1.js` |
 | Fondos como TileSprite recortados a su franja visible | `ui/ParallaxBackground.js`, `fondos.json` |
 | Phaser en un archivo separado (caché del navegador) | `vite.config.js` |
 | Calidad adaptativa: si el promedio baja de 45 FPS se quitan niebla y shaders | `managers/PerformanceMonitor.js` |
