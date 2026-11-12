@@ -4,6 +4,7 @@ import BootScene from './scenes/BootScene.js';
 import PreloadScene from './scenes/PreloadScene.js';
 import MenuScene from './scenes/MenuScene.js';
 import HelpScene from './scenes/HelpScene.js';
+import LevelSelectScene from './scenes/LevelSelectScene.js';
 import StoryScene from './scenes/StoryScene.js';
 import GameScene from './scenes/GameScene.js';
 import UIScene from './scenes/UIScene.js';
@@ -41,7 +42,7 @@ const config = {
   },
   input: { activePointers: 3 },
   fps: { target: 60 },
-  scene: [BootScene, PreloadScene, MenuScene, HelpScene, StoryScene, GameScene, UIScene, PauseScene, GameOverScene, VictoryScene]
+  scene: [BootScene, PreloadScene, MenuScene, LevelSelectScene, HelpScene, StoryScene, GameScene, UIScene, PauseScene, GameOverScene, VictoryScene]
 };
 
 const juego = new Phaser.Game(config);

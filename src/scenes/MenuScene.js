@@ -10,7 +10,7 @@ import ParallaxBackground from '../ui/ParallaxBackground.js';
 import TextButton from '../ui/TextButton.js';
 import MenuList from '../ui/MenuList.js';
 
-/** Menú principal: nueva partida, continuar, instrucciones y sonido. */
+/** Menú principal: nueva partida, continuar, elegir nivel, instrucciones y sonido. */
 export default class MenuScene extends Phaser.Scene {
   constructor() {
     super(ESCENAS.MENU);
@@ -29,14 +29,16 @@ export default class MenuScene extends Phaser.Scene {
     this.tweens.add({ targets: fragmento, y: 100, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
 
     const botones = [];
-    let y = 236;
-    const paso = 58;
+    let y = 214;
+    const paso = 52;
     const partida = almacen.partida;
     if (partida) {
       botones.push(new TextButton(this, ANCHO / 2, y, `Continuar: nivel ${partida.nivel}`, () => this.continuar(partida)));
       y += paso;
     }
     botones.push(new TextButton(this, ANCHO / 2, y, 'Nueva partida', () => this.nuevaPartida()));
+    y += paso;
+    botones.push(new TextButton(this, ANCHO / 2, y, 'Elegir nivel', () => this.scene.start(ESCENAS.SELECTOR)));
     y += paso;
     botones.push(new TextButton(this, ANCHO / 2, y, 'Cómo jugar', () => this.scene.start(ESCENAS.AYUDA)));
     y += paso;
@@ -52,7 +54,7 @@ export default class MenuScene extends Phaser.Scene {
     this.add.rectangle(ANCHO / 2, ALTO - 36, ANCHO, 44, COLOR.panel, 0.75);
     this.add.bitmapText(30, ALTO - 36, FUENTE, `Récord: ${almacen.record}`, 24).setOrigin(0, 0.5).setTint(COLOR.oro);
     this.add.bitmapText(ANCHO - 30, ALTO - 36, FUENTE, `Nivel alcanzado: ${nivel} de ${TOTAL_NIVELES}`, 24).setOrigin(1, 0.5);
-    this.add.bitmapText(ANCHO / 2, y + 44, FUENTE, 'Flechas y Enter, o toca para elegir', 24).setOrigin(0.5).setTint(COLOR.lana);
+    this.add.bitmapText(ANCHO / 2, y + 40, FUENTE, 'Flechas y Enter, o toca para elegir', 24).setOrigin(0.5).setTint(COLOR.lana);
   }
 
   textoSonido() {

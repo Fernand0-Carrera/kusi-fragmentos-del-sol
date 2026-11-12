@@ -12,7 +12,7 @@
 | Mecánicas de juego | 15 % | __ / 15 | Saltos con tiempo coyote, buffer y altura variable; plataformas de un solo sentido; resortes; losas móviles; suelo de hielo; checkpoints; jefe con dos fases. |
 | Física y colisiones | 10 % | __ / 10 | Arcade Physics con gravedad, colliders con tilemap, overlaps, triggers (apachetas, meta, arena) y rebotes. |
 | Arquitectura y modularidad | 15 % | __ / 15 | Carpetas `scenes`, `objects`, `ui`, `managers`, `physics`, `audio` y `assets`; máquina de estados reutilizable; EventBus; niveles definidos como datos. |
-| Rendimiento y optimización | 10 % | __ / 10 | 60 FPS en modo Canvas; pooling, texturas precalculadas, fondos recortados y calidad adaptativa. **Pendiente: medir con `?fps` en un equipo con GPU y anotar el resultado aquí:** ____ FPS. |
+| Rendimiento y optimización | 10 % | __ / 10 | 60 FPS en modo Canvas; pooling, texturas precalculadas, fondos recortados y calidad adaptativa. El monitor de rendimiento interno activa la calidad ligera si el equipo baja de 45 FPS. |
 | UX/UI | 10 % | __ / 10 | Menús navegables con teclado, ratón y toque; HUD con vidas, puntos, fragmentos, minimapa y barra del jefe; pausa y Game Over claros. |
 | Audio e inmersión | 5 % | __ / 5 | 3 músicas, 2 jingles y 12 efectos originales; silencio con botón y tecla M, guardado entre sesiones. |
 | Responsividad y táctil | 5 % | __ / 5 | `Scale.FIT`, controles táctiles multitáctiles probados en un móvil simulado en horizontal, pantalla completa y aviso de orientación. |

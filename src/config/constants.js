@@ -14,6 +14,7 @@ export const ESCENAS = {
   CARGA: 'PreloadScene',
   MENU: 'MenuScene',
   AYUDA: 'HelpScene',
+  SELECTOR: 'LevelSelectScene',
   HISTORIA: 'StoryScene',
   JUEGO: 'GameScene',
   HUD: 'UIScene',

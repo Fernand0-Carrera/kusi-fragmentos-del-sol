@@ -37,7 +37,8 @@ Cada carpeta tiene una responsabilidad: `scenes` decide el flujo, `objects` el c
 | --- | --- |
 | `BootScene` | Carga solo la fuente pixelada para poder mostrar texto en la pantalla de carga. |
 | `PreloadScene` | Recorre `assetManifest.js`, muestra la barra de progreso, registra errores de carga y crea las animaciones. |
-| `MenuScene` | Nueva partida, Continuar (si hay partida guardada), Cómo jugar y Sonido. Muestra récord y nivel alcanzado. |
+| `MenuScene` | Nueva partida, Continuar (si hay partida guardada), Elegir nivel, Cómo jugar y Sonido. Muestra récord y nivel alcanzado. |
+| `LevelSelectScene` | Selector de niveles: una tarjeta por nivel con vista previa del fondo; solo se eligen los niveles ya alcanzados (`nivelAlcanzado` en `StorageManager`). |
 | `HelpScene` | Controles de teclado y táctiles, y significado de cada objeto. |
 | `StoryScene` | Paneles de historia con retrato animado y efecto máquina de escribir. Recibe a dónde ir al terminar. |
 | `GameScene` | Construye el nivel, crea a Kusi, conecta colisiones, cámara y música, y aplica victoria y derrota. |
