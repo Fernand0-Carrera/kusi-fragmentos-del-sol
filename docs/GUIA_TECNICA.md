@@ -55,8 +55,9 @@ Hay dos niveles de estados.
 
 1. **Estado global** (`managers/GameStateManager.js`): `cargando`, `menu`, `historia`, `jugando`, `pausa`, `derrota` y `victoria`, con una tabla de transiciones permitidas. Se usa, por ejemplo, para que la tecla P solo pause cuando el estado es `jugando`.
 2. **Máquinas de estados de entidades** (`managers/StateMachine.js`): una clase genérica que guarda el estado actual y llama a `entrar`, `actualizar` y `salir`.
-   - **Kusi:** `quieto`, `corriendo`, `saltando`, `cayendo`, `herido`, `muerto` y `celebrando`. Cada estado elige su animación y decide a cuál pasar.
-   - **Uku:** `oculto`, `entrada`, `flotar`, `aviso`, `picada`, `aturdido`, `golpeado`, `subir` y `derrotado`.
+   - **Kusi:** `quieto`, `corriendo`, `saltando`, `cayendo`, `dash`, `herido`, `muerto` y `celebrando`. Cada estado elige su animación y decide a cuál pasar.
+   - **Uku:** `oculto`, `entrada`, `flotar`, `rayo`, `aviso`, `picada`, `aturdido`, `golpeado`, `subir` y `derrotado`.
+   - **Llama:** `quieta`, `inflar`, `escupir` y `liberada`. **Atoq:** `patrullar`, `alerta`, `cargar`, `cansado` y `liberado`.
 
 Ventaja: en vez de muchos `if` mezclados en `update()`, cada estado describe solo lo suyo, y agregar un estado nuevo no rompe los demás.
 
@@ -102,11 +103,15 @@ Para crear un nivel nuevo basta con agregar un objeto al arreglo `NIVELES`.
 
 - **Neblino:** patrulla; da la vuelta si choca (`body.blocked`) o si la baldosa delante de sus pies no existe (`capa.getTileAtWorldXY`).
 - **Murciélago:** sin gravedad. Patrulla en horizontal y su velocidad vertical es la derivada de una onda seno, así el vuelo es suave.
+- **Llama hechizada:** no se mueve. Se gira hacia Kusi y, si está dentro de su alcance (8 baldosas en horizontal y 2 de diferencia de altura), infla las mejillas 0,55 s como aviso y escupe un proyectil de escarcha tomado de un pool (`escupitajos`). Al pisarla se libera de la niebla en vez de morir.
+- **Atoq de niebla:** patrulla como el Neblino. Si ve a Kusi a su misma altura (6 baldosas), se detiene con un "!" durante 0,45 s y embiste a 210 px/s; frena en paredes y bordes y queda `cansado` 1,2 s, que es el mejor momento para pisarlo.
 - **Uku:**
   - En `flotar` persigue la posición X de Kusi con velocidad limitada y suelta esquirlas.
   - Luego avisa (ojos rojos y temblor), se lanza en `picada`, queda `aturdido` y vuelve a subir.
   - Solo es vulnerable en `aturdido`.
-  - Con la mitad de la vida (fase 2) se mueve más rápido, suelta tres esquirlas a la vez y pasa menos tiempo aturdido.
+  - Tiene **3 fases** según su vida (más de 2/3, más de 1/3 y el resto). En cada fase sube la velocidad (160, 230 y 300), suelta más esquirlas por tanda (1, 3 y 5) y pasa menos tiempo aturdido (2,4 s, 1,7 s y 1,1 s).
+  - Al cambiar de fase cambia de color, ruge y sacude la cámara. La barra del jefe muestra la fase (F1, F2, F3).
+  - En la fase 3, cada 2 tandas de hielo pasa al estado `rayo`: marca una sombra amarilla en el suelo donde está Kusi y, 0,8 s después, deja caer un rayo (`Rayo.js`, también con pool).
 
 ## 8. Comunicación entre partes: EventBus
 

@@ -74,6 +74,7 @@ export default class TutorialNivel1 {
     this.inicioX = jugador.x;
     this.terminado = false;
     this.actual = null;
+    this.panelesEnPantalla = 0; // los carteles salen de uno en uno: el siguiente espera a que se vaya el anterior
     // El Neblino del primer cartel de pisotón es el enemigo más cercano a la columna 21
     this.primerEnemigo = enemigos.getChildren()
       .filter((e) => e.vivo !== undefined)
@@ -130,6 +131,7 @@ export default class TutorialNivel1 {
     };
     panel.dibujarFondo(COLOR.oro);
     panel.alto = alto;
+    this.panelesEnPantalla += 1;
     panel.setScale(0);
     this.scene.tweens.add({ targets: panel, scale: 1, duration: 260, ease: 'Back.out' });
     panel.flotar = this.scene.tweens.add({ targets: panel, y: ALTO_CARTEL - 5, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
@@ -144,22 +146,26 @@ export default class TutorialNivel1 {
     // Si Kusi ya pasó de largo un cartel, se da por visto
     this.carteles.forEach((c) => { if (!c.visto && columna > c.hasta) this.cerrar(c, false); });
 
+    // El cartel que se muestra se completa cuando el jugador hace lo que pide
+    if (this.actual && this.actual.hecho(this)) this.cerrar(this.actual, true);
+
     const siguiente = this.carteles.find((c) => !c.visto && columna >= c.desde && columna <= c.hasta) ?? null;
     if (siguiente !== this.actual) {
-      if (this.actual && !this.actual.visto) this.ocultarPanel(this.actual);
-      this.actual = siguiente;
+      // Kusi salió del tramo del cartel actual sin completarlo (por ejemplo, retrocedió): se guarda
+      if (this.actual) this.ocultarPanel(this.actual);
+      this.actual = null;
       if (siguiente && siguiente.hecho(this)) {
         // Lo que pide este cartel ya lo hizo antes: no hace falta mostrarlo
         siguiente.visto = true;
-        this.actual = null;
-      } else if (siguiente) {
+      } else if (siguiente && this.panelesEnPantalla === 0) {
+        // Solo aparece cuando el cartel anterior terminó de irse, para que nunca se encimen
+        this.actual = siguiente;
         siguiente.poste = this.crearPoste(siguiente.x);
         siguiente.panel = this.crearPanel(siguiente);
       }
     }
-    if (this.actual && this.actual.hecho(this)) this.cerrar(this.actual, true);
 
-    if (this.carteles.every((c) => c.visto)) this.terminar();
+    if (this.panelesEnPantalla === 0 && this.carteles.every((c) => c.visto)) this.terminar();
   }
 
   /** Completa un cartel: si el jugador lo hizo bien, se celebra con un "¡Bien!". */
@@ -172,7 +178,7 @@ export default class TutorialNivel1 {
       panel.dibujarFondo(COLOR.turquesa);
       const bien = this.scene.add.bitmapText(0, -panel.alto / 2 - 16, FUENTE, '¡Bien!', 24).setOrigin(0.5).setTint(COLOR.oroClaro);
       panel.add(bien);
-      this.scene.time.delayedCall(700, () => this.ocultarPanel(cartel));
+      this.scene.time.delayedCall(550, () => this.ocultarPanel(cartel));
     } else {
       this.ocultarPanel(cartel);
     }
@@ -188,7 +194,13 @@ export default class TutorialNivel1 {
     if (!panel || panel.cerrando) return;
     panel.cerrando = true;
     panel.flotar?.stop();
-    this.scene.tweens.add({ targets: panel, scale: 0, alpha: 0, duration: 200, ease: 'Back.in', onComplete: () => panel.destroy() });
+    this.scene.tweens.add({
+      targets: panel, scale: 0, alpha: 0, duration: 200, ease: 'Back.in',
+      onComplete: () => {
+        panel.destroy();
+        this.panelesEnPantalla -= 1;
+      }
+    });
     cartel.panel = null;
   }
 
