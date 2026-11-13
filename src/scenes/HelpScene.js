@@ -81,17 +81,18 @@ export default class HelpScene extends Phaser.Scene {
 
   crearBotones() {
     const y = ALTO - 34;
-    // Anchos medidos para que quepa el texto más largo de cada botón ("Volver a la pausa")
-    const anterior = new TextButton(this, 127, y, '< Anterior', () => this.cambiarPagina(-1), { ancho: 166, alto: 46 });
-    this.botonTutorial = new TextButton(this, 342, y, this.textoTutorial(), () => this.repetirTutorial(), { ancho: 240, alto: 46 });
-    const volver = new TextButton(this, 607, y, this.desdePausa ? 'Volver a la pausa' : 'Volver al menú', () => this.volver(), { ancho: 266, alto: 46 });
-    const siguiente = new TextButton(this, 834, y, 'Siguiente >', () => this.cambiarPagina(1), { ancho: 164, alto: 46 });
+    // Anchos medidos con la fuente del botón (24 px): cada uno deja al menos 8 px de margen
+    // al texto más largo que puede mostrar ("Repetir tutorial" 228 px, "Volver a la pausa" 258 px)
+    const anterior = new TextButton(this, 115, y, '< Anterior', () => this.cambiarPagina(-1), { ancho: 168, alto: 46 });
+    this.botonTutorial = new TextButton(this, 329, y, this.textoTutorial(), () => this.repetirTutorial(), { ancho: 244, alto: 46 });
+    const volver = new TextButton(this, 596, y, this.desdePausa ? 'Volver a la pausa' : 'Volver al menú', () => this.volver(), { ancho: 274, alto: 46 });
+    const siguiente = new TextButton(this, 835, y, 'Siguiente >', () => this.cambiarPagina(1), { ancho: 188, alto: 46 });
     this.menu = new MenuList(this, [anterior, this.botonTutorial, volver, siguiente]);
     this.menu.enfocar(3);
   }
 
   textoTutorial() {
-    return almacen.tutorialVisto ? 'Repetir tutorial' : 'Tutorial activado';
+    return almacen.tutorialVisto ? 'Repetir tutorial' : 'Tutorial activo';
   }
 
   /** Vuelve a activar los carteles del Nivel 1 (útil para mostrar el juego a alguien nuevo). */

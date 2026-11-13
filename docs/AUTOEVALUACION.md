@@ -8,7 +8,7 @@
 
 | Criterio | Peso | Autoevaluación | Justificación |
 | --- | --- | --- | --- |
-| Funcionalidad principal | 20 % | __ / 20 | El juego se juega de inicio a fin: menú, selector de niveles, historia, 3 niveles, jefe, victoria, Game Over y reinicio. 32 pruebas automatizadas aprobadas. |
+| Funcionalidad principal | 20 % | __ / 20 | El juego se juega de inicio a fin: menú, selector de niveles, historia, 3 niveles, jefe, victoria, Game Over y reinicio. 33 pruebas automatizadas aprobadas. |
 | Mecánicas de juego | 15 % | __ / 15 | Saltos con tiempo coyote, buffer y altura variable; dash en el suelo y en el aire; plataformas de un solo sentido; resortes; losas móviles; suelo de hielo; checkpoints; enemigos con IA propia (Llama que dispara, Atoq que embiste); jefe con 3 fases y rayos con aviso. |
 | Física y colisiones | 10 % | __ / 10 | Arcade Physics con gravedad, colliders con tilemap, overlaps, triggers (apachetas, meta, arena) y rebotes. |
 | Arquitectura y modularidad | 15 % | __ / 15 | Carpetas `scenes`, `objects`, `ui`, `managers`, `physics`, `audio` y `assets`; máquina de estados reutilizable; EventBus; niveles definidos como datos. |
@@ -35,10 +35,13 @@
 - El rendimiento en WebGL debe confirmarse en un equipo con GPU.
 - Los controles táctiles solo se probaron en un móvil simulado, no en un dispositivo físico.
 
+## Decisiones de diseño
+
+- **Rayos de Uku solo en la fase 3.** La idea inicial era un rayo después de cada 3 tandas de hielo y más rayos en cada fase. El equipo decidió dejarlos solo en la fase 3 y cada 2 tandas, para que el cierre de la pelea sea más difícil y los rayos no lleguen tan tarde. Las fases 1 y 2 se diferencian por la velocidad, la cantidad de esquirlas y el tiempo de aturdimiento.
+
 ## Mejoras futuras
 
 - Más niveles.
-- Mostrar en el selector el mejor puntaje y los fragmentos recogidos de cada nivel.
 - Tabla de récords en línea (leaderboard).
 - Más patrones de ataque para Uku.
 - Ajuste de volumen de música y efectos por separado en el menú.

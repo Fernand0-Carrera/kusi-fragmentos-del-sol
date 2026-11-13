@@ -138,7 +138,7 @@ npm run assets
 
 ## Pruebas automatizadas
 
-`tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 32 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria, "Continuar", el selector de niveles (bloqueo y mejores resultados), el tutorial del Nivel 1 y "Cómo jugar" desde la pausa. Requiere `pip install playwright` y el servidor de desarrollo en marcha.
+`tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 33 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria, "Continuar", el selector de niveles (bloqueo y mejores resultados), el tutorial del Nivel 1, "Cómo jugar" desde la pausa y que datos guardados dañados no rompan el juego. Requiere `pip install playwright` y el servidor de desarrollo en marcha.
 
 ## Créditos
 
