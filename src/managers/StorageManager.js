@@ -1,6 +1,7 @@
 /**
- * Persistencia con localStorage: récord, nivel alcanzado, partida guardada
- * y configuración de audio. Todo se guarda en una sola clave JSON.
+ * Persistencia con localStorage: récord, nivel alcanzado, partida guardada,
+ * mejores resultados de cada nivel y configuración de audio.
+ * Todo se guarda en una sola clave JSON.
  * Cada acceso va dentro de try/catch porque algunos navegadores (modo privado,
  * almacenamiento bloqueado) lanzan excepciones; en ese caso el juego sigue
  * funcionando con los datos en memoria.
@@ -12,7 +13,11 @@ const PREDETERMINADO = {
   nivelAlcanzado: 1,
   audio: { silencio: false, volumenMusica: 0.5, volumenEfectos: 0.8 },
   partida: null, // { nivel, puntos, vidas } al comenzar el último nivel alcanzado
-  graficos: 'normal' // 'ligero' si el equipo no alcanzó 45 FPS
+  graficos: 'normal', // 'ligero' si el equipo no alcanzó 45 FPS
+  tutorialVisto: false, // los carteles del Nivel 1 solo salen la primera vez
+  // Mejores resultados por nivel, para el selector:
+  // { 1: { puntos, fragmentos, total, segundos }, ... } (solo niveles completados)
+  niveles: {}
 };
 
 class StorageManager {
@@ -46,6 +51,30 @@ class StorageManager {
   get audio() { return this.datos.audio; }
   get partida() { return this.datos.partida; }
   get graficosLigeros() { return this.datos.graficos === 'ligero'; }
+  get tutorialVisto() { return this.datos.tutorialVisto; }
+
+  /** Mejor resultado guardado de un nivel, o null si nunca se completó. */
+  resultadoNivel(nivel) { return this.datos.niveles[nivel] ?? null; }
+
+  /**
+   * Guarda el resultado de un nivel completado, quedándose con lo mejor de cada
+   * dato por separado: más puntos, más fragmentos y menos tiempo.
+   * Devuelve true si mejoró el puntaje de ese nivel.
+   */
+  registrarResultadoNivel(nivel, { puntos, fragmentos, total, segundos }) {
+    const previo = this.datos.niveles[nivel];
+    const mejoroPuntaje = !previo || puntos > previo.puntos;
+    this.datos.niveles[nivel] = previo
+      ? {
+          puntos: Math.max(previo.puntos, puntos),
+          fragmentos: Math.max(previo.fragmentos, fragmentos),
+          total,
+          segundos: Math.min(previo.segundos, segundos)
+        }
+      : { puntos, fragmentos, total, segundos };
+    this.guardar();
+    return mejoroPuntaje;
+  }
 
   /** Devuelve true si el puntaje supera el récord anterior. */
   actualizarRecord(puntos) {
@@ -77,6 +106,12 @@ class StorageManager {
 
   guardarGraficos(modo) {
     this.datos.graficos = modo;
+    this.guardar();
+  }
+
+  /** true: no se vuelve a mostrar el tutorial. false: se repite (botón en "Cómo jugar"). */
+  marcarTutorialVisto(visto = true) {
+    this.datos.tutorialVisto = visto;
     this.guardar();
   }
 

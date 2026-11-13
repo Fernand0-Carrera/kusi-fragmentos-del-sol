@@ -3,7 +3,10 @@
  * Estrategia: red primero para el HTML (para recibir actualizaciones) y
  * caché primero para el resto de archivos (JS, imágenes, audio).
  */
-const CACHE = 'kusi-v1';
+// Cambiar este nombre cada vez que se modifiquen imágenes, audio o datos de public/:
+// al activarse, el service worker borra las cachés con otro nombre y descarga los archivos nuevos.
+// v2: sprites del dash, Llama, Atoq y sonido del rayo.
+const CACHE = 'kusi-v2';
 
 self.addEventListener('install', (evento) => {
   evento.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['./', './index.html'])));

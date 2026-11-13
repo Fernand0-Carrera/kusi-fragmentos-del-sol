@@ -17,6 +17,7 @@ import Player from '../objects/Player.js';
 import Uku from '../objects/Uku.js';
 import IceShard from '../objects/IceShard.js';
 import Rayo from '../objects/Rayo.js';
+import TutorialNivel1 from '../ui/TutorialNivel1.js';
 
 /**
  * Escena de juego: construye el nivel, crea a Kusi, conecta colisiones,
@@ -57,6 +58,13 @@ export default class GameScene extends Phaser.Scene {
     this.colisiones = new CollisionSystem(this, this.nivel, this.jugador);
     this.colisiones.registrar();
     if (this.nivel.posicionJefe) this.prepararJefe();
+
+    // --- Tutorial interactivo: solo en el Nivel 1 y solo la primera vez
+    this.tutorial = null;
+    if (this.numeroNivel === 1 && !almacen.tutorialVisto) {
+      const tactil = this.sys.game.device.input.touch || new URLSearchParams(location.search).has('tactil');
+      this.tutorial = new TutorialNivel1(this, this.jugador, this.nivel.enemigos, { tactil });
+    }
 
     // --- Cámara con zona muerta y suavizado
     const camara = this.cameras.main;
@@ -130,6 +138,7 @@ export default class GameScene extends Phaser.Scene {
     this.entrada.actualizar();
     this.jugador.update(time, delta);
     this.jefe?.update(time, delta);
+    this.tutorial?.actualizar();
     this.fondo.actualizar(this.cameras.main.scrollX, delta / 1000);
 
     // Caída al vacío: el mundo no tiene suelo en los pozos
@@ -250,9 +259,16 @@ export default class GameScene extends Phaser.Scene {
       fragmentos: sesion.fragmentos, total: sesion.fragmentosTotales, segundos, bonoTiempo, bonoVidas, puntos: sesion.puntos
     });
 
-    // Persistencia: récord, nivel alcanzado y partida para "Continuar"
+    // Persistencia: récord, mejor resultado del nivel (para el selector),
+    // nivel alcanzado y partida para "Continuar"
     const siguiente = this.numeroNivel + 1;
     almacen.actualizarRecord(sesion.puntos);
+    almacen.registrarResultadoNivel(this.numeroNivel, {
+      puntos: sesion.puntos - sesion.puntosInicioNivel, // solo lo ganado en este nivel, con bonos
+      fragmentos: sesion.fragmentos,
+      total: sesion.fragmentosTotales,
+      segundos
+    });
     if (siguiente <= TOTAL_NIVELES) {
       almacen.registrarNivel(siguiente);
       almacen.guardarPartida({ nivel: siguiente, puntos: sesion.puntos, vidas: sesion.vidas });

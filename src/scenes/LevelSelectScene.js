@@ -10,7 +10,7 @@ import ParallaxBackground from '../ui/ParallaxBackground.js';
 import TextButton from '../ui/TextButton.js';
 
 const ANCHO_TARJETA = 260;
-const ALTO_TARJETA = 270;
+const ALTO_TARJETA = 330;
 const ESCALA_VISTA = 0.25; // la vista previa es el fondo del nivel a un cuarto de tamaño (240 x 135)
 
 /**
@@ -18,6 +18,8 @@ const ESCALA_VISTA = 0.25; // la vista previa es el fondo del nivel a un cuarto 
  * de su fondo; solo se pueden elegir los niveles ya alcanzados
  * (StorageManager.nivelAlcanzado). Elegir un nivel empieza una partida
  * nueva desde ese nivel, sin tocar la partida guardada de "Continuar".
+ * Cada tarjeta muestra además el mejor resultado de ese nivel (puntos,
+ * fragmentos y tiempo), guardado por StorageManager al completarlo.
  * Navegación: flechas o A/D/W/S, Enter o Espacio, Esc para volver.
  */
 export default class LevelSelectScene extends Phaser.Scene {
@@ -41,7 +43,7 @@ export default class LevelSelectScene extends Phaser.Scene {
     const separacion = ANCHO_TARJETA + 30;
     const inicioX = ANCHO / 2 - ((NIVELES.length - 1) * separacion) / 2;
     this.tarjetas = NIVELES.map((nivel, i) =>
-      this.crearTarjeta(inicioX + i * separacion, 240, nivel, nivel.id <= alcanzado));
+      this.crearTarjeta(inicioX + i * separacion, 252, nivel, nivel.id <= alcanzado));
 
     this.volver = new TextButton(this, ANCHO / 2, ALTO - 74, 'Volver al menú', () => this.irAlMenu(), { ancho: 300, alto: 46 });
     this.volver.on('enfocar', () => this.enfocar(this.tarjetas.length));
@@ -76,11 +78,12 @@ export default class LevelSelectScene extends Phaser.Scene {
     });
     tarjeta.add(vista);
 
-    const numero = this.add.bitmapText(0, 30, FUENTE, `Nivel ${nivel.id}`, 24).setOrigin(0.5)
+    const numero = this.add.bitmapText(0, 2, FUENTE, `Nivel ${nivel.id}`, 24).setOrigin(0.5)
       .setTint(desbloqueado ? COLOR.oro : 0x6a6290);
-    const nombre = this.add.bitmapText(0, 52, FUENTE, desbloqueado ? nivel.nombre : '???', 24).setOrigin(0.5, 0)
+    const nombre = this.add.bitmapText(0, 20, FUENTE, desbloqueado ? nivel.nombre : '???', 24).setOrigin(0.5, 0)
       .setMaxWidth(ANCHO_TARJETA - 20).setCenterAlign().setTint(desbloqueado ? COLOR.lana : 0x6a6290);
     tarjeta.add([numero, nombre]);
+    if (desbloqueado) this.agregarResultado(tarjeta, almacen.resultadoNivel(nivel.id));
 
     if (!desbloqueado) tarjeta.add(this.dibujarCandado(0, -ALTO_TARJETA / 2 + 14 + 67));
 
@@ -89,6 +92,35 @@ export default class LevelSelectScene extends Phaser.Scene {
     tarjeta.on('pointerover', () => this.enfocar(this.tarjetas.indexOf(tarjeta)));
     tarjeta.on('pointerup', () => this.elegir(tarjeta));
     return tarjeta;
+  }
+
+  /**
+   * Franja inferior de la tarjeta con el mejor resultado del nivel:
+   * puntos, fragmentos (en dorado si se recogieron todos) y tiempo.
+   */
+  agregarResultado(tarjeta, resultado) {
+    const base = ALTO_TARJETA / 2 - 58;
+    const linea = this.add.graphics();
+    linea.lineStyle(1, 0x4a4070, 1).lineBetween(-ANCHO_TARJETA / 2 + 16, base - 4, ANCHO_TARJETA / 2 - 16, base - 4);
+    tarjeta.add(linea);
+    if (!resultado) {
+      tarjeta.add(this.add.bitmapText(0, base + 22, FUENTE, 'Aún sin completar', 20).setOrigin(0.5).setTint(0x8a84b0));
+      return;
+    }
+    const { puntos, fragmentos, total, segundos } = resultado;
+    tarjeta.add(this.add.bitmapText(0, base + 12, FUENTE, `Mejor: ${puntos} pts`, 20).setOrigin(0.5).setTint(COLOR.oroClaro));
+
+    const completo = fragmentos >= total;
+    const tiempo = `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, '0')}`;
+    const texto = this.add.bitmapText(0, base + 36, FUENTE, `${fragmentos}/${total}   Tiempo ${tiempo}`, 18)
+      .setOrigin(0, 0.5).setTint(completo ? COLOR.oro : COLOR.lana);
+    const icono = this.add.sprite(0, base + 36, 'fragmento').setScale(0.6);
+    if (completo) icono.play('fragmento-girar'); // todos los fragmentos: el icono gira
+    // Icono + texto centrados juntos
+    const anchoTotal = icono.displayWidth + 6 + texto.width;
+    icono.x = -anchoTotal / 2 + icono.displayWidth / 2;
+    texto.x = icono.x + icono.displayWidth / 2 + 6;
+    tarjeta.add([icono, texto]);
   }
 
   /** Candado dibujado con Graphics (no necesita sprite propio). */

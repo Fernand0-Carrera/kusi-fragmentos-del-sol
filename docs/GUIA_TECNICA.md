@@ -38,12 +38,12 @@ Cada carpeta tiene una responsabilidad: `scenes` decide el flujo, `objects` el c
 | `BootScene` | Carga solo la fuente pixelada para poder mostrar texto en la pantalla de carga. |
 | `PreloadScene` | Recorre `assetManifest.js`, muestra la barra de progreso, registra errores de carga y crea las animaciones. |
 | `MenuScene` | Nueva partida, Continuar (si hay partida guardada), Elegir nivel, Cómo jugar y Sonido. Muestra récord y nivel alcanzado. |
-| `LevelSelectScene` | Selector de niveles: una tarjeta por nivel con vista previa del fondo; solo se eligen los niveles ya alcanzados (`nivelAlcanzado` en `StorageManager`). |
-| `HelpScene` | Controles de teclado y táctiles, y significado de cada objeto. |
+| `LevelSelectScene` | Selector de niveles: una tarjeta por nivel con vista previa del fondo y su mejor resultado (`resultadoNivel` en `StorageManager`); solo se eligen los niveles ya alcanzados (`nivelAlcanzado`). |
+| `HelpScene` | "Cómo jugar" en 4 páginas (controles, objetos, enemigos y jefe) con los sprites y sus animaciones reales. Permite repetir el tutorial. |
 | `StoryScene` | Paneles de historia con retrato animado y efecto máquina de escribir. Recibe a dónde ir al terminar. |
 | `GameScene` | Construye el nivel, crea a Kusi, conecta colisiones, cámara y música, y aplica victoria y derrota. |
 | `UIScene` | HUD que corre **en paralelo** encima de GameScene. |
-| `PauseScene` | Overlay de pausa; GameScene queda congelada con `scene.pause()`. |
+| `PauseScene` | Overlay de pausa; GameScene queda congelada con `scene.pause()`. "Cómo jugar" duerme la pausa (`scene.sleep()`) y abre HelpScene encima; al volver, la pausa se despierta y la partida sigue igual. |
 | `GameOverScene` | Resumen, récord y reintento del nivel. |
 | `VictoryScene` | Final de la partida, récord y opciones para volver a jugar. |
 
@@ -55,8 +55,9 @@ Hay dos niveles de estados.
 
 1. **Estado global** (`managers/GameStateManager.js`): `cargando`, `menu`, `historia`, `jugando`, `pausa`, `derrota` y `victoria`, con una tabla de transiciones permitidas. Se usa, por ejemplo, para que la tecla P solo pause cuando el estado es `jugando`.
 2. **Máquinas de estados de entidades** (`managers/StateMachine.js`): una clase genérica que guarda el estado actual y llama a `entrar`, `actualizar` y `salir`.
-   - **Kusi:** `quieto`, `corriendo`, `saltando`, `cayendo`, `herido`, `muerto` y `celebrando`. Cada estado elige su animación y decide a cuál pasar.
-   - **Uku:** `oculto`, `entrada`, `flotar`, `aviso`, `picada`, `aturdido`, `golpeado`, `subir` y `derrotado`.
+   - **Kusi:** `quieto`, `corriendo`, `saltando`, `cayendo`, `dash`, `herido`, `muerto` y `celebrando`. Cada estado elige su animación y decide a cuál pasar.
+   - **Uku:** `oculto`, `entrada`, `flotar`, `rayo`, `aviso`, `picada`, `aturdido`, `golpeado`, `subir` y `derrotado`.
+   - **Llama:** `quieta`, `inflar`, `escupir` y `liberada`. **Atoq:** `patrullar`, `alerta`, `cargar`, `cansado` y `liberado`.
 
 Ventaja: en vez de muchos `if` mezclados en `update()`, cada estado describe solo lo suyo, y agregar un estado nuevo no rompe los demás.
 
@@ -102,11 +103,15 @@ Para crear un nivel nuevo basta con agregar un objeto al arreglo `NIVELES`.
 
 - **Neblino:** patrulla; da la vuelta si choca (`body.blocked`) o si la baldosa delante de sus pies no existe (`capa.getTileAtWorldXY`).
 - **Murciélago:** sin gravedad. Patrulla en horizontal y su velocidad vertical es la derivada de una onda seno, así el vuelo es suave.
+- **Llama hechizada:** no se mueve. Se gira hacia Kusi y, si está dentro de su alcance (8 baldosas en horizontal y 2 de diferencia de altura), infla las mejillas 0,55 s como aviso y escupe un proyectil de escarcha tomado de un pool (`escupitajos`). Al pisarla se libera de la niebla en vez de morir.
+- **Atoq de niebla:** patrulla como el Neblino. Si ve a Kusi a su misma altura (6 baldosas), se detiene con un "!" durante 0,45 s y embiste a 210 px/s; frena en paredes y bordes y queda `cansado` 1,2 s, que es el mejor momento para pisarlo.
 - **Uku:**
   - En `flotar` persigue la posición X de Kusi con velocidad limitada y suelta esquirlas.
   - Luego avisa (ojos rojos y temblor), se lanza en `picada`, queda `aturdido` y vuelve a subir.
   - Solo es vulnerable en `aturdido`.
-  - Con la mitad de la vida (fase 2) se mueve más rápido, suelta tres esquirlas a la vez y pasa menos tiempo aturdido.
+  - Tiene **3 fases** según su vida (más de 2/3, más de 1/3 y el resto). En cada fase sube la velocidad (160, 230 y 300), suelta más esquirlas por tanda (1, 3 y 5) y pasa menos tiempo aturdido (2,4 s, 1,7 s y 1,1 s).
+  - Al cambiar de fase cambia de color, ruge y sacude la cámara. La barra del jefe muestra la fase (F1, F2, F3).
+  - En la fase 3, cada 2 tandas de hielo pasa al estado `rayo`: marca una sombra amarilla en el suelo donde está Kusi y, 0,8 s después, deja caer un rayo (`Rayo.js`, también con pool).
 
 ## 8. Comunicación entre partes: EventBus
 
@@ -126,8 +131,12 @@ Se guarda un único JSON en `localStorage` con la clave `kusi.fragmentos-del-sol
 { "record": 4215, "nivelAlcanzado": 3,
   "audio": { "silencio": false, "volumenMusica": 0.5, "volumenEfectos": 0.8 },
   "partida": { "nivel": 2, "puntos": 870, "vidas": 3 },
-  "graficos": "normal" }
+  "graficos": "normal",
+  "tutorialVisto": true,
+  "niveles": { "1": { "puntos": 1840, "fragmentos": 31, "total": 31, "segundos": 102 } } }
 ```
+
+`niveles` guarda el mejor resultado de cada nivel completado: al cruzar la Puerta del Sol, `GameScene` llama a `registrarResultadoNivel`, que se queda con el máximo de puntos y fragmentos y el mínimo de tiempo por separado. El selector de niveles lo muestra en cada tarjeta.
 
 Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacenamiento puede estar bloqueado (modo privado). En ese caso el juego sigue funcionando con los datos en memoria.
 
@@ -145,6 +154,7 @@ Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacena
 | Object pooling de esquirlas (`group.get`, `maxSize: 16`) | `objects/IceShard.js`, `GameScene.prepararJefe` |
 | Un emisor por tipo de partícula reutilizado con `explode`, y un pool de siluetas para la estela del dash | `managers/EffectsManager.js` |
 | Minimapa dibujado una vez en una textura | `ui/Minimap.js` |
+| Tutorial del Nivel 1 solo la primera vez (`tutorialVisto` en `StorageManager`) | `ui/TutorialNivel1.js` |
 | Fondos como TileSprite recortados a su franja visible | `ui/ParallaxBackground.js`, `fondos.json` |
 | Phaser en un archivo separado (caché del navegador) | `vite.config.js` |
 | Calidad adaptativa: si el promedio baja de 45 FPS se quitan niebla y shaders | `managers/PerformanceMonitor.js` |
@@ -171,7 +181,7 @@ Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacena
 4. **¿Por qué una máquina de estados?** Ordena el comportamiento: cada estado tiene su animación y sus transiciones, y se evitan combinaciones inválidas (por ejemplo, saltar estando muerto).
 5. **¿Qué es el object pooling?** Reutilizar objetos desactivados en vez de crear y destruir. Reduce el trabajo del recolector de basura y evita tirones.
 6. **¿Cómo se garantiza que el HUD no deje oyentes colgados?** Cada suscripción al EventBus se elimina en el evento `shutdown` de la escena.
-7. **¿Qué se guarda en localStorage y por qué con `try/catch`?** Récord, nivel alcanzado, partida, audio y gráficos. El `try/catch` evita que el juego falle si el navegador bloquea el almacenamiento.
+7. **¿Qué se guarda en localStorage y por qué con `try/catch`?** Récord, nivel alcanzado, mejor resultado por nivel, partida, audio, gráficos y si ya se vio el tutorial. El `try/catch` evita que el juego falle si el navegador bloquea el almacenamiento.
 8. **¿Cómo detecta el Neblino el borde de una plataforma?** Consulta la baldosa que está delante y debajo de sus pies; si no hay una baldosa con colisión, da la vuelta.
 9. **¿Cómo se mantiene el rendimiento?** Pooling, texturas precalculadas, fondos recortados, partículas reutilizadas y calidad adaptativa por debajo de 45 FPS.
 10. **¿Qué pasa si el audio no puede reproducirse al inicio?** El AudioManager guarda la música pendiente y la inicia cuando el navegador desbloquea el audio con la primera interacción.

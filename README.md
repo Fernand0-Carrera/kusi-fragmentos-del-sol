@@ -16,13 +16,13 @@ La historia se cuenta con escenas narradas (introducción, dos interludios y ep�
 
 ## Capturas
 
-| Menú principal | Historia |
+| Menú principal | Selector de niveles |
 | --- | --- |
-| ![Menú](docs/capturas/01_menu.png) | ![Historia](docs/capturas/02_historia.png) |
-| **Nivel 1: Valle de los Colibríes** | **Nivel 2: Cuevas de Hielo** |
-| ![Nivel 1](docs/capturas/03_valle.png) | ![Nivel 2](docs/capturas/04_cuevas_hielo.png) |
-| **Nivel 3: jefe final Uku** | **Victoria** |
-| ![Jefe](docs/capturas/05_jefe_uku.png) | ![Victoria](docs/capturas/06_victoria.png) |
+| ![Menú](docs/capturas/01_menu.png) | ![Selector de niveles](docs/capturas/02_selector_niveles.png) |
+| **Nivel 1: tutorial interactivo** | **Nivel 2: la Llama hechizada escupe escarcha** |
+| ![Nivel 1 con tutorial](docs/capturas/03_tutorial_valle.png) | ![Nivel 2](docs/capturas/04_cuevas_llama.png) |
+| **Nivel 3: Uku en su fase 3 lanza un rayo** | **Cómo jugar (4 páginas animadas)** |
+| ![Jefe](docs/capturas/05_jefe_uku.png) | ![Cómo jugar](docs/capturas/06_como_jugar.png) |
 
 ## Requisitos
 
@@ -47,7 +47,7 @@ La carpeta `dist/` se puede publicar en cualquier servidor estático (GitHub Pag
 | --- | --- | --- |
 | Moverse | Flechas ← → o A / D | Botones ◀ ▶ abajo a la izquierda |
 | Saltar (mantener = salto más alto) | Espacio, W, Z o Flecha arriba | Botón ▲ abajo a la derecha |
-| Dash (uno por salto) | Shift o X | Botón ≫ junto al de saltar |
+| Dash (en el suelo, o uno por salto en el aire) | Shift o X | Botón ≫ junto al de saltar |
 | Pausa | P o Esc | Icono de pausa (arriba a la derecha) |
 | Silenciar | M | Icono de sonido |
 | Pantalla completa | — | Icono de pantalla completa |
@@ -59,10 +59,12 @@ Los controles táctiles aparecen solos en dispositivos táctiles y admiten vario
 
 - Recoge **fragmentos de sol** (+10 puntos) y **corazones** (una vida más, máximo 5).
 - Salta sobre **Neblinos** y **murciélagos de escarcha** para derrotarlos (+50). Tocarlos de lado quita una vida.
+- La **Llama hechizada** escupe escarcha si estás a su altura, y el **Atoq de niebla** (zorro) te embiste cuando te ve y luego queda cansado. Al pisarlos no mueren: se liberan de la niebla.
 - Las **púas de hielo** dañan; caer a un **pozo** quita una vida y te devuelve a la última **apacheta** encendida (punto de control).
 - La **flor de puya** funciona como resorte.
 - Llega a la **Puerta del Sol** para terminar el nivel. Ganas un bono por tiempo y por vidas restantes.
-- **Uku** es invulnerable en el aire: esquiva sus esquirlas de hielo, espera a que se lance en picada y salta sobre él mientras está aturdido. Tiene 6 puntos de vida y a la mitad se vuelve más agresivo.
+- **Uku** es invulnerable en el aire: esquiva sus esquirlas de hielo, espera a que se lance en picada y salta sobre él mientras está aturdido. Tiene 6 puntos de vida y **3 fases** (cambia de color, ruge y sacude la cámara al pasar de una a otra). En cada fase es más rápido, lanza más esquirlas y se recupera antes. En la fase 3 además lanza **rayos**: una sombra amarilla en el suelo avisa dónde caerán.
+- La primera vez, el **Nivel 1** muestra carteles de tutorial que se completan al hacer cada acción. Se pueden repetir desde **Cómo jugar**.
 - **Victoria:** derrotar a Uku y entrar en la Puerta del Sol. **Derrota:** quedarse sin vidas.
 
 ## Estructura del proyecto
@@ -82,11 +84,11 @@ kusi-fragmentos-del-sol/
 │   ├── data/                  # niveles en ASCII e historia
 │   ├── assets/assetManifest.js
 │   ├── audio/audioKeys.js
-│   ├── scenes/                # Boot, Preload, Menu, Help, Story, Game, UI, Pause, GameOver, Victory
-│   ├── objects/               # Player, Enemy, Neblino, Murcielago, Uku, IceShard, Collectible...
+│   ├── scenes/                # Boot, Preload, Menu, LevelSelect, Help, Story, Game, UI, Pause, GameOver, Victory
+│   ├── objects/               # Player, Enemy, Neblino, Murcielago, Llama, Atoq, Uku, IceShard, Rayo, Collectible...
 │   ├── physics/               # LevelBuilder (tilemap) y CollisionSystem (colliders, overlaps, triggers)
 │   ├── managers/              # EventBus, StateMachine, GameState, Storage, Audio, Input, Session...
-│   └── ui/                    # TextButton, MenuList, HUD (Minimap, BossBar, TouchControls), paralaje
+│   └── ui/                    # TextButton, MenuList, HUD (Minimap, BossBar, TouchControls), paralaje, tutorial
 ├── tools/                     # scripts que generan imágenes y audio
 ├── tests/                     # pruebas funcionales automatizadas (Playwright)
 └── docs/                      # capturas, guía técnica, autoevaluación y guion del video
@@ -99,22 +101,21 @@ La explicación detallada de la arquitectura está en [docs/GUIA_TECNICA.md](doc
 | Requisito | Implementación |
 | --- | --- |
 | Escenas, loader, estados | 11 escenas; `PreloadScene` con barra de progreso; `GameStateManager` y `StateMachine` |
-| Menú, pausa, Game Over, reinicio | `MenuScene`, `PauseScene` (continuar, reiniciar, salir), `GameOverScene` (reintentar) |
+| Menú, pausa, Game Over, reinicio | `MenuScene`, `PauseScene` (continuar, reiniciar, cómo jugar, sonido, salir), `GameOverScene` (reintentar) |
 | Movimiento, colisiones, puntaje, HUD | `Player`, `CollisionSystem`, `GameSession`, `UIScene` |
-| Enemigos, victoria y derrota | Neblino, murciélago, púas, jefe Uku; Puerta del Sol; sin vidas = Game Over |
+| Enemigos, victoria y derrota | Neblino, murciélago, Llama, Atoq, púas, jefe Uku de 3 fases con rayos; Puerta del Sol; sin vidas = Game Over |
 | Arcade Physics, overlaps, triggers, gravedad y rebotes | Gravedad global, tilemap con colisiones de un solo sentido, overlaps de objetos, triggers (apachetas, arena del jefe, meta), resortes y pisotones |
 | Audio | 3 músicas en bucle, 2 jingles y 14 efectos; botón y tecla M para silenciar |
-| Persistencia (localStorage) | Récord, nivel alcanzado (desbloquea niveles en "Elegir nivel"), partida para "Continuar", silencio y modo de gráficos |
+| Persistencia (localStorage) | Récord, nivel alcanzado (desbloquea niveles en "Elegir nivel"), mejor resultado de cada nivel (puntos, fragmentos y tiempo), partida para "Continuar", silencio, modo de gráficos y tutorial ya visto |
 | Responsive y táctil | `Scale.FIT` 960×540, controles táctiles multitáctiles, pantalla completa |
 | Rendimiento | Object pooling, minimapa precalculado, capas de fondo recortadas, calidad adaptativa por debajo de 45 FPS |
-| Accesibilidad | Paleta de alto contraste con contorno en el texto, instrucciones en "Cómo jugar", foco visible con teclado, mute |
+| Accesibilidad | Paleta de alto contraste con contorno en el texto, "Cómo jugar" en 4 páginas con animaciones, tutorial interactivo en el Nivel 1, foco visible con teclado, mute |
 | Bonus | Jefe final, minimapa, PWA instalable, efectos de shader (viñeta y brillo en WebGL) |
 
 ## Parámetros de URL útiles
 
 | Parámetro | Efecto |
 | --- | --- |
-| `?fps` | Muestra el contador de FPS desde el inicio |
 | `?debug` | Dibuja los cuerpos físicos de Arcade |
 | `?tactil` | Muestra los controles táctiles en escritorio |
 | `?canvas` | Fuerza el renderizador Canvas (equipos sin GPU) |
@@ -125,7 +126,7 @@ La explicación detallada de la arquitectura está en [docs/GUIA_TECNICA.md](doc
 - En modo Canvas el juego completo se mantuvo en **60 FPS** en un navegador Chromium sin aceleración gráfica.
 - Con WebGL hace falta una GPU real; en la máquina de prueba (sin GPU) no fue posible medirlo de forma representativa.
 - Si durante el juego el promedio baja de 45 FPS, el juego activa solo el *modo de rendimiento*. Ese modo quita la niebla y los shaders, y la preferencia queda guardada.
-- Para comprobarlo en tu equipo abre `http://localhost:5173/?fps`.
+- Para forzar ese modo desde el inicio abre el juego con `?ligero`.
 
 ## Regenerar los recursos
 
@@ -137,7 +138,7 @@ npm run assets
 
 ## Pruebas automatizadas
 
-`tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 22 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria y "Continuar". Requiere `pip install playwright` y el servidor de desarrollo en marcha.
+`tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 32 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria, "Continuar", el selector de niveles (bloqueo y mejores resultados), el tutorial del Nivel 1 y "Cómo jugar" desde la pausa. Requiere `pip install playwright` y el servidor de desarrollo en marcha.
 
 ## Créditos
 
