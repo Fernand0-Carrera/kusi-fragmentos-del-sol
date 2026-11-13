@@ -274,6 +274,17 @@ with sync_playwright() as p:
     pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
     ok('ayuda_vuelve_a_la_pausa_y_la_partida_sigue', en_pausa and not pg.evaluate("T.g().scene.isPaused('GameScene')") and pg.evaluate("T.estado().x") == x0)
 
+    # Datos guardados dañados o de otra versión: el juego los corrige al cargar en vez de romperse
+    pg.evaluate("""localStorage.setItem('kusi.fragmentos-del-sol.v1', JSON.stringify({
+      nivelAlcanzado: 'tres', partida: {nivel: 9, puntos: 5}, niveles: {1: {puntos: 300}, 7: null}, tutorialVisto: 'si'}))""")
+    pg.goto(BASE + '?canvas')
+    esperar(pg, "window.__kusi && window.__kusi.scene.isActive('MenuScene')", 20000)
+    pg.evaluate(JS)
+    pg.evaluate("T.g().scene.getScene('MenuScene').scene.start('LevelSelectScene')")
+    esperar(pg, "T.activa('LevelSelectScene')"); pg.wait_for_timeout(400)
+    d = pg.evaluate("(() => { const a = T.d().almacen; return {partida: a.partida, alcanzado: a.nivelAlcanzado, niveles: a.datos.niveles, tutorial: a.tutorialVisto, tarjetas: T.g().scene.getScene('LevelSelectScene').tarjetas.length}; })()")
+    ok('datos_guardados_danados_no_rompen_el_juego', d['partida'] is None and d['alcanzado'] == 1 and d['niveles'] == {} and d['tutorial'] is False and d['tarjetas'] == 3, d)
+
     ok('sin_errores_en_consola', len(errores) == 0, errores[:5])
     b.close()
 

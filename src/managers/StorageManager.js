@@ -1,3 +1,4 @@
+import { TOTAL_NIVELES } from '../data/levels.js';
 /**
  * Persistencia con localStorage: récord, nivel alcanzado, partida guardada,
  * mejores resultados de cada nivel y configuración de audio.
@@ -31,11 +32,42 @@ class StorageManager {
       if (!texto) return structuredClone(PREDETERMINADO);
       const leido = JSON.parse(texto);
       // Se mezcla con los valores por defecto por si faltan campos de versiones anteriores
-      return { ...structuredClone(PREDETERMINADO), ...leido, audio: { ...PREDETERMINADO.audio, ...leido.audio } };
+      return this.validar({ ...structuredClone(PREDETERMINADO), ...leido, audio: { ...PREDETERMINADO.audio, ...leido.audio } });
     } catch (error) {
       console.warn('No se pudo leer localStorage:', error);
       return structuredClone(PREDETERMINADO);
     }
+  }
+
+  /**
+   * Corrige o descarta lo que no tenga sentido en los datos leídos (guardados de otra
+   * versión o editados a mano), para que el juego nunca se rompa al usarlos:
+   * por ejemplo, una partida en un nivel que no existe dejaba la pantalla en negro.
+   */
+  validar(d) {
+    const numero = (v, min, max) => Number.isFinite(v) && v >= min && v <= max;
+    const entero = (v, min, max) => Number.isInteger(v) && v >= min && v <= max;
+    if (!numero(d.record, 0, Infinity)) d.record = 0;
+    if (!entero(d.nivelAlcanzado, 1, TOTAL_NIVELES)) d.nivelAlcanzado = 1;
+    if (!['normal', 'ligero'].includes(d.graficos)) d.graficos = 'normal';
+    d.tutorialVisto = d.tutorialVisto === true;
+
+    // Partida de "Continuar": se conserva solo si el nivel existe; puntos y vidas se completan si faltan
+    const p = d.partida;
+    d.partida = (p && entero(p.nivel, 1, TOTAL_NIVELES))
+      ? { nivel: p.nivel, puntos: numero(p.puntos, 0, Infinity) ? p.puntos : 0, vidas: entero(p.vidas, 1, 99) ? p.vidas : 3 }
+      : null;
+
+    // Resultados por nivel: solo entradas completas de niveles que existen
+    const niveles = {};
+    if (d.niveles && typeof d.niveles === 'object') {
+      for (const [clave, r] of Object.entries(d.niveles)) {
+        const completo = r && ['puntos', 'fragmentos', 'total', 'segundos'].every((k) => numero(r[k], 0, Infinity));
+        if (entero(Number(clave), 1, TOTAL_NIVELES) && completo) niveles[clave] = r;
+      }
+    }
+    d.niveles = niveles;
+    return d;
   }
 
   guardar() {

@@ -140,6 +140,8 @@ Se guarda un único JSON en `localStorage` con la clave `kusi.fragmentos-del-sol
 
 Todas las lecturas y escrituras están dentro de `try/catch`, porque el almacenamiento puede estar bloqueado (modo privado). En ese caso el juego sigue funcionando con los datos en memoria.
 
+Al cargar, `validar()` corrige lo que no tenga sentido (datos de otra versión o editados a mano): una partida en un nivel que no existe se descarta, a una partida sin puntos o vidas se le ponen los valores iniciales, y los resultados por nivel incompletos se ignoran.
+
 ## 10. Audio (`managers/AudioManager.js`)
 
 - Mantiene una sola música a la vez y la conserva entre escenas, sin reiniciarla si ya suena.
