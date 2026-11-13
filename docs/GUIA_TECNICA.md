@@ -112,6 +112,7 @@ Para crear un nivel nuevo basta con agregar un objeto al arreglo `NIVELES`.
   - Tiene **3 fases** según su vida (más de 2/3, más de 1/3 y el resto). En cada fase sube la velocidad (160, 230 y 300), suelta más esquirlas por tanda (1, 3 y 5) y pasa menos tiempo aturdido (2,4 s, 1,7 s y 1,1 s).
   - Al cambiar de fase cambia de color, ruge y sacude la cámara. La barra del jefe muestra la fase (F1, F2, F3).
   - En la fase 3, cada 2 tandas de hielo pasa al estado `rayo`: marca una sombra amarilla en el suelo donde está Kusi y, 0,8 s después, deja caer un rayo (`Rayo.js`, también con pool).
+  - Es una decisión de diseño: al principio se pensó un rayo cada 3 tandas en todas las fases, pero se dejaron solo en la fase 3 y más seguidos para que el final sea más difícil (ver `AUTOEVALUACION.md`, "Decisiones de diseño").
 
 ## 8. Comunicación entre partes: EventBus
 

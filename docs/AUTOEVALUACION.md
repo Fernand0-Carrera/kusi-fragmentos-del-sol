@@ -35,10 +35,13 @@
 - El rendimiento en WebGL debe confirmarse en un equipo con GPU.
 - Los controles táctiles solo se probaron en un móvil simulado, no en un dispositivo físico.
 
+## Decisiones de diseño
+
+- **Rayos de Uku solo en la fase 3.** La idea inicial era un rayo después de cada 3 tandas de hielo y más rayos en cada fase. El equipo decidió dejarlos solo en la fase 3 y cada 2 tandas, para que el cierre de la pelea sea más difícil y los rayos no lleguen tan tarde. Las fases 1 y 2 se diferencian por la velocidad, la cantidad de esquirlas y el tiempo de aturdimiento.
+
 ## Mejoras futuras
 
 - Más niveles.
-- Mostrar en el selector el mejor puntaje y los fragmentos recogidos de cada nivel.
 - Tabla de récords en línea (leaderboard).
 - Más patrones de ataque para Uku.
 - Ajuste de volumen de música y efectos por separado en el menú.
