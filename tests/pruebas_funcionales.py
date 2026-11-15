@@ -274,6 +274,18 @@ with sync_playwright() as p:
     pg.keyboard.press('Escape'); pg.wait_for_timeout(400)
     ok('ayuda_vuelve_a_la_pausa_y_la_partida_sigue', en_pausa and not pg.evaluate("T.g().scene.isPaused('GameScene')") and pg.evaluate("T.estado().x") == x0)
 
+    # Jugar el nivel 3 (con jefe) y después otro nivel en la misma sesión ("Jugar de nuevo" tras la victoria,
+    # o el selector): Phaser reutiliza GameScene y no deben quedar referencias al jefe del nivel anterior
+    pg.evaluate("T.d().sesion.nueva(3); T.gs().scene.start('GameScene', {nivel: 3})")
+    esperar(pg, "T.activa('GameScene') && T.gs().numeroNivel===3 && T.gs().jugador", 8000)
+    pg.wait_for_timeout(500)
+    n_err = len(errores)
+    pg.evaluate("T.d().sesion.nueva(1); T.gs().scene.start('GameScene', {nivel: 1})")
+    pg.wait_for_timeout(700)
+    f1 = pg.evaluate("T.g().loop.frame")
+    pg.wait_for_timeout(500)
+    ok('otro_nivel_despues_del_jefe_no_congela', pg.evaluate("T.g().loop.frame") > f1 + 10 and len(errores) == n_err and pg.evaluate("T.gs().numeroNivel") == 1, errores[n_err:n_err+2])
+
     # Datos guardados dañados o de otra versión: el juego los corrige al cargar en vez de romperse
     pg.evaluate("""localStorage.setItem('kusi.fragmentos-del-sol.v1', JSON.stringify({
       nivelAlcanzado: 'tres', partida: {nivel: 9, puntos: 5}, niveles: {1: {puntos: 300}, 7: null}, tutorialVisto: 'si'}))""")

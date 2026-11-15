@@ -37,6 +37,14 @@ export default class GameScene extends Phaser.Scene {
     this.cayendo = false;
     this.arenaActiva = false;
     this.tiempoNivel = 0;
+    // Phaser reutiliza esta misma escena para todos los niveles: sin esto, al pasar del
+    // nivel 3 a otro nivel (p. ej. "Jugar de nuevo" tras la victoria) quedaban referencias
+    // a los grupos ya destruidos del jefe y update() fallaba, congelando el juego.
+    this.jefe = null;
+    this.esquirlas = null;
+    this.rayos = null;
+    this.zonaArena = null;
+    this.barreraArena = null;
   }
 
   create() {
