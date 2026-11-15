@@ -142,7 +142,7 @@ npm run assets
 
 ## Créditos
 
-- Programación, diseño de niveles, historia, sprites, fondos y música: autor del proyecto. Todos los recursos se generan con los scripts de `tools/`; no se usaron assets descargados.
+- Programación, diseño de niveles, historia, sprites, fondos y música: autores del proyecto. Todos los recursos se generan con los scripts de `tools/`; no se usaron assets descargados.
 - Motor: [Phaser 3](https://phaser.io) (licencia MIT). Herramienta de compilación: [Vite](https://vite.dev) (licencia MIT).
 - Tipografía pixelada derivada de DejaVu Sans Bold (licencia libre de Bitstream Vera / DejaVu).
 - Vocabulario quechua: *Inti* (sol), *sonqo* (corazón), *chasqui* (mensajero), *apacheta* (montículo de piedras de los caminos andinos), *chullo* (gorro andino).
