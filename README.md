@@ -156,7 +156,7 @@ Rúbrica del proyecto completada por el equipo. Los puntajes son los que creemos
 | Responsividad y táctil | 5 % | 4 / 5 | `Scale.FIT`, controles táctiles multitáctiles, pantalla completa y aviso de orientación. Los controles táctiles solo se probaron en un móvil simulado, no en un teléfono físico. |
 | Código limpio y documentación | 5 % | 4 / 5 | Comentarios en cada módulo, nombres descriptivos en español, guía técnica y README. Faltan comentarios en algunos archivos de la carpeta `ui`. |
 | README, video y presentación | 5 % | 5 / 5 | README completo con controles, estructura y 6 capturas, video y presentación preparados. |
-| **Total** | **100 %** | **89 / 100** | |
+| **Total** | **100 %** | **91 / 100** | |
 | Bonus | hasta +10 % | +8 | Jefe final, minimapa, PWA instalable y efectos de shader (viñeta y brillo). |
 
 ### Fortalezas
