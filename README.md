@@ -140,6 +140,50 @@ npm run assets
 
 `tests/pruebas_funcionales.py` recorre el juego en un navegador real y verifica 34 casos. Entre ellos están el movimiento, el salto, los pisotones, el daño, los resortes, los checkpoints, la pausa, el silencio persistente, las losas móviles, el suelo de hielo, el Game Over, el jefe completo, la victoria, "Continuar", el selector de niveles (bloqueo y mejores resultados), el tutorial del Nivel 1, "Cómo jugar" desde la pausa y que datos guardados dañados no rompan el juego. Requiere `pip install playwright` y el servidor de desarrollo en marcha.
 
+## Autoevaluación
+
+Rúbrica del proyecto completada por el equipo. Los puntajes son los que creemos justos hoy, con sus razones y con lo que todavía falta.
+
+| Criterio | Peso | Puntaje | Justificación |
+| --- | --- | --- | --- |
+| Funcionalidad principal | 20 % | 19 / 20 | El juego se puede jugar de inicio a fin: menú, selector de niveles, historia, 3 niveles, jefe, victoria, Game Over y reinicio. Pasa 34 pruebas automáticas. Descontamos un punto porque el WebGL no se midió en un equipo con GPU. |
+| Mecánicas de juego | 15 % | 14 / 15 | Salto con tiempo coyote, buffer y altura variable; dash; plataformas de un solo sentido; resortes; losas móviles; suelo de hielo; checkpoints; enemigos con IA propia (Llama, Atoq) y un jefe de 3 fases con rayos avisados. Todo es coherente con una plataforma 2D. Falta variedad: solo hay un jefe. |
+| Física y colisiones | 10 % | 9 / 10 | Arcade Physics con gravedad, colliders con el tilemap, overlaps, triggers (apachetas, meta, arena del jefe), rebotes y pisotón. Las plataformas de un solo sentido y las losas móviles requirieron ajustes finos. |
+| Arquitectura y modularidad | 15 % | 14 / 15 | Carpetas `scenes`, `objects`, `ui`, `managers`, `physics` y `audio`; 11 escenas; máquina de estados reutilizable para Kusi, enemigos y jefe; EventBus; niveles definidos como texto. Algunas escenas, como `GameScene`, siguen siendo largas y se podrían dividir más. |
+| Rendimiento y optimización | 10 % | 8 / 10 | 60 FPS en modo Canvas; pooling de objetos, minimapa precalculado, fondos recortados y un monitor que quita niebla y shaders si baja de 45 FPS. No pudimos medir WebGL con una GPU real. |
+| UX/UI | 10 % | 9 / 10 | Menús con teclado, mouse y toque; selector con vista previa; "Cómo jugar" en 4 páginas; tutorial interactivo en el Nivel 1; HUD con vidas, puntos, fragmentos, minimapa y barra del jefe; pausa y Game Over claros. |
+| Audio e inmersión | 5 % | 5 / 5 | 3 canciones, 2 jingles y 14 efectos originales; silencio con botón y tecla M, guardado entre sesiones. |
+| Responsividad y táctil | 5 % | 4 / 5 | `Scale.FIT`, controles táctiles multitáctiles, pantalla completa y aviso de orientación. Los controles táctiles solo se probaron en un móvil simulado, no en un teléfono físico. |
+| Código limpio y documentación | 5 % | 4 / 5 | Comentarios en cada módulo, nombres descriptivos en español, guía técnica y README. Faltan comentarios en algunos archivos de la carpeta `ui`. |
+| README, video y presentación | 5 % | 5 / 5 | README completo con controles, estructura y 6 capturas, video y presentación preparados. |
+| **Total** | **100 %** | **89 / 100** | |
+| Bonus | hasta +10 % | +8 | Jefe final, minimapa, PWA instalable y efectos de shader (viñeta y brillo). |
+
+### Fortalezas
+
+- Una historia original con identidad andina, presente en la narración, los personajes, el vocabulario quechua y la música pentatónica. Las mecánicas la acompañan: las apachetas son puntos de control, los enemigos se liberan de la niebla en lugar de morir y Uku solo se puede dañar cuando deja de volar.
+- Todos los recursos gráficos y sonoros son originales y se pueden regenerar con los scripts de `tools/`.
+- Arquitectura clara y fácil de extender: un nivel nuevo se agrega como texto y un enemigo nuevo como una clase que extiende `Enemy`.
+- Pruebas automáticas que encontraron errores reales, como historias bloqueadas tras la introducción, el silencio mal guardado, datos guardados dañados que dejaban la pantalla en negro y un congelamiento al jugar otro nivel después del jefe.
+
+### Limitaciones
+
+- El arte es pixel art sencillo, generado por código.
+- Solo hay tres niveles y un jefe.
+- El rendimiento en WebGL no se confirmó en un equipo con GPU.
+
+### Decisiones de diseño
+
+- **Rayos de Uku solo en la fase 3.** La idea inicial era un rayo después de cada 3 tandas de hielo y más rayos en cada fase. Decidimos dejarlos solo en la fase 3 y cada 2 tandas, para que el cierre de la pelea sea el momento más difícil. Las fases 1 y 2 se diferencian por la velocidad, la cantidad de esquirlas y el tiempo de aturdimiento.
+
+### Mejoras futuras
+
+- Más niveles y más patrones de ataque para Uku.
+- Tabla de récords en línea (leaderboard).
+- Ajuste separado del volumen de música y efectos en el menú.
+- Medir y optimizar el rendimiento en WebGL.
+- Dividir las escenas más largas en módulos más pequeños.
+
 ## Créditos
 
 - Programación, diseño de niveles, historia, sprites, fondos y música: autores del proyecto. Todos los recursos se generan con los scripts de `tools/`; no se usaron assets descargados.
